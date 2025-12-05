@@ -34,6 +34,7 @@ class _SignupScreenState extends State<SignupScreen> {
         backgroundColor: const Color(0xFFF57C00),
         elevation: 0,
       ),
+      
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
