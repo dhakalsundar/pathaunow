@@ -21,18 +21,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'Pathau Now helps you follow your courier and parcels step by step.',
       icon: Icons.location_searching,
     ),
+
     _OnboardData(
       title: 'Real-time Updates',
       description:
           'See live status like picked, in-transit, and delivered in one place.',
       icon: Icons.update,
     ),
+
     _OnboardData(
       title: 'Safe & Easy Delivery',
       description:
           'Simple, fast and secure experience for both sender and receiver.',
       icon: Icons.verified_user,
     ),
+    
   ];
 
   void _goNext() {
