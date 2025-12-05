@@ -169,6 +169,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ElevatedButton(
                         onPressed: _goNext,
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF57C00),
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 22,
                             vertical: 12,

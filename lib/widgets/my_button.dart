@@ -16,6 +16,10 @@ class MyButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFF57C00),
+          foregroundColor: Colors.white,
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0),
           child: Text(
