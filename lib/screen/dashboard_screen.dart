@@ -1,9 +1,44 @@
 import 'package:flutter/material.dart';
+import '../services/mistral_service.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   static const String routeName = '/dashboard';
 
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final Mistral _mistral = Mistral();
+  final TextEditingController _questionController = TextEditingController();
+  String _response = '';
+  bool _isLoading = false;
+
+  Future<void> _ask() async {
+    if (_questionController.text.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _response = '';
+    });
+
+    try {
+      final response = await _mistral.askMistral(_questionController.text);
+      setState(() {
+        _response = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _response = 'An error occurred. Please try again later.';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,27 +66,53 @@ class DashboardScreen extends StatelessWidget {
             constraints: BoxConstraints(
               maxWidth: isTablet ? 600 : double.infinity,
             ),
-            child: const Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Welcome to Dashboard',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      
-                      fontWeight: FontWeight.bold,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Ask Mistral a Question',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                ],
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _questionController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Enter your question',
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    if (_isLoading)
+                      const CircularProgressIndicator()
+                    else
+                      Text(
+                        _response,
+                        textAlign: TextAlign.center,
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _ask,
+        child: const Icon(Icons.send),
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    super.dispose();
   }
 }
