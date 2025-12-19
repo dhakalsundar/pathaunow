@@ -4,6 +4,7 @@ import 'screen/onboarding_screen.dart';
 import 'screen/login_screen.dart';
 import 'screen/signup_screen.dart';
 import 'screen/dashboard_screen.dart';
+// import 'theme/theme_data.dart';
 
 class PathauNowApp extends StatelessWidget {
   const PathauNowApp({super.key});
@@ -13,12 +14,15 @@ class PathauNowApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pathau Now',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFFF57C00),
 
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFF57C00)),
-        useMaterial3: true,
-      ),
+      // theme: AppTheme.lightTheme,
+      // theme: ThemeData(
+      //   useMaterial3: true,
+      //   fontFamily: "OpenSans",
+      //   colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFF57C00)),
+      //   primaryColor: const Color(0xFFF57C00),
+      //   scaffoldBackgroundColor: const Color(0xFFF8F9FB),
+      // ),
       initialRoute: SplashScreen.routeName,
       routes: <String, WidgetBuilder>{
         SplashScreen.routeName: (_) => const SplashScreen(),
