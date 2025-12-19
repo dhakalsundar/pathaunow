@@ -9,7 +9,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  static const Color kPrimary = Color(0xFFF57C00); // PathauNow Orange
+  static const Color kPrimary = Color(0xFFF57C00);
   int _index = 0;
   final TextEditingController _trackingController = TextEditingController();
 
@@ -202,7 +202,7 @@ class _TabletNavRail extends StatelessWidget {
   }
 }
 
-class _HomeDashboard extends StatelessWidget {
+class _HomeDashboard extends StatefulWidget {
   final TextEditingController trackingController;
   final VoidCallback onTrack;
   final Color primary;
@@ -214,54 +214,331 @@ class _HomeDashboard extends StatelessWidget {
   });
 
   @override
+  State<_HomeDashboard> createState() => _HomeDashboardState();
+}
+
+class _HomeDashboardState extends State<_HomeDashboard> {
+  String _shipmentFilter = "All";
+
+  final List<String> _recentTrackIds = const [
+    "PNOW-102948",
+    "PNOW-102913",
+    "PNOW-102877",
+  ];
+
+  final List<Map<String, String>> _notifications = const [
+    {"title": "Delivered", "desc": "PNOW-102913 delivered to Kathmandu"},
+    {"title": "Out for delivery", "desc": "PNOW-102948 is on the way"},
+    {"title": "In transit", "desc": "PNOW-102801 reached sorting hub"},
+  ];
+
+  Future<void> _refresh() async {
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Dashboard refreshed (demo).")),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final bool isTablet = MediaQuery.of(context).size.width >= 700;
+    final now = DateTime.now();
+    final greeting = _greeting(now.hour);
+    final dateText = _formatDate(now);
 
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        _Header(primary: primary, isTablet: isTablet),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _TrackCard(
-                trackingController: trackingController,
-                onTrack: onTrack,
-                primary: primary,
-              ),
-              const SizedBox(height: 16),
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          _Header(primary: widget.primary, isTablet: isTablet),
 
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final bool twoCols = constraints.maxWidth >= 900;
-                  if (!twoCols) {
-                    return Column(
-                      children: [
-                        _QuickActions(primary: primary),
-                        const SizedBox(height: 16),
-                        _SummaryCards(primary: primary),
-                      ],
-                    );
-                  }
-                  return Row(
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "$greeting 👋",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            dateText,
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: widget.primary.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: widget.primary.withOpacity(0.18),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.verified_rounded,
+                            color: widget.primary,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Trusted",
+                            style: TextStyle(
+                              color: widget.primary,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                _TrackCard(
+                  trackingController: widget.trackingController,
+                  onTrack: widget.onTrack,
+                  primary: widget.primary,
+                ),
+
+                const SizedBox(height: 12),
+
+                _Card(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _QuickActions(primary: primary)),
-                      const SizedBox(width: 16),
-                      Expanded(child: _SummaryCards(primary: primary)),
+                      const Text(
+                        "Recent Tracking",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: _recentTrackIds.map((id) {
+                          return ActionChip(
+                            label: Text(
+                              id,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            avatar: Icon(
+                              Icons.history_rounded,
+                              color: widget.primary,
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              widget.trackingController.text = id;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Tracking ID set: $id")),
+                              );
+                            },
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              side: BorderSide(
+                                color: widget.primary.withOpacity(0.22),
+                              ),
+                            ),
+                            backgroundColor: widget.primary.withOpacity(0.08),
+                          );
+                        }).toList(),
+                      ),
                     ],
-                  );
-                },
-              ),
+                  ),
+                ),
 
-              const SizedBox(height: 16),
-              _RecentShipments(primary: primary),
-            ],
+                const SizedBox(height: 16),
+
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final bool twoCols = constraints.maxWidth >= 900;
+                    if (!twoCols) {
+                      return Column(
+                        children: [
+                          _QuickActions(primary: widget.primary),
+                          const SizedBox(height: 16),
+                          _SummaryCards(primary: widget.primary),
+                        ],
+                      );
+                    }
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _QuickActions(primary: widget.primary)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _SummaryCards(primary: widget.primary)),
+                      ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                _Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              "Notifications",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "View all notifications (demo).",
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "View all",
+                              style: TextStyle(
+                                color: widget.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ..._notifications.take(3).map((n) {
+                        return Column(
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: widget.primary.withOpacity(0.10),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Icon(
+                                  Icons.notifications_rounded,
+                                  color: widget.primary,
+                                ),
+                              ),
+                              title: Text(
+                                n["title"] ?? "",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              subtitle: Text(n["desc"] ?? ""),
+                            ),
+                            const Divider(height: 1),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 10,
+                    children: ["All", "In Transit", "Delivered", "Pending"]
+                        .map(
+                          (f) => ChoiceChip(
+                            label: Text(f),
+                            selected: _shipmentFilter == f,
+                            onSelected: (_) =>
+                                setState(() => _shipmentFilter = f),
+                            selectedColor: widget.primary.withOpacity(0.18),
+                            labelStyle: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: _shipmentFilter == f
+                                  ? widget.primary
+                                  : Colors.black87,
+                            ),
+                            side: BorderSide(
+                              color: widget.primary.withOpacity(0.22),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                _RecentShipments(
+                  primary: widget.primary,
+                  filter: _shipmentFilter,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  String _greeting(int hour) {
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  }
+
+  String _formatDate(DateTime d) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return "${days[d.weekday % 7]}, ${months[d.month - 1]} ${d.day}";
   }
 }
 
@@ -419,6 +696,71 @@ class _QuickActions extends StatelessWidget {
   final Color primary;
   const _QuickActions({required this.primary});
 
+  void _openRatesCalculator(BuildContext context) {
+    final wCtrl = TextEditingController();
+    final dCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Rate Calculator (Demo)"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: wCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Weight (kg)",
+                hintText: "e.g. 2",
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: dCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Distance (km)",
+                hintText: "e.g. 10",
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Formula (demo): Rs. 50 + (10 × kg) + (5 × km)",
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final kg = double.tryParse(wCtrl.text.trim()) ?? 0;
+              final km = double.tryParse(dCtrl.text.trim()) ?? 0;
+              final cost = 50 + (10 * kg) + (5 * km);
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    "Estimated Cost: Rs. ${cost.toStringAsFixed(0)} (demo)",
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("Calculate"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return _Card(
@@ -438,21 +780,31 @@ class _QuickActions extends StatelessWidget {
                 primary: primary,
                 icon: Icons.add_box_rounded,
                 label: "Create",
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Create Shipment: demo only")),
+                ),
               ),
               _ActionTile(
                 primary: primary,
                 icon: Icons.location_on_rounded,
                 label: "Offices",
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Find Offices: demo only")),
+                ),
               ),
               _ActionTile(
                 primary: primary,
                 icon: Icons.support_agent_rounded,
                 label: "Support",
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Support: demo only")),
+                ),
               ),
               _ActionTile(
                 primary: primary,
                 icon: Icons.receipt_long_rounded,
                 label: "Rates",
+                onTap: () => _openRatesCalculator(context),
               ),
             ],
           ),
@@ -466,22 +818,20 @@ class _ActionTile extends StatelessWidget {
   final Color primary;
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
   const _ActionTile({
     required this.primary,
     required this.icon,
     required this.label,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("$label: demo only")));
-      },
+      onTap: onTap,
       child: Container(
         width: 150,
         padding: const EdgeInsets.all(14),
@@ -642,7 +992,9 @@ class _StatCard extends StatelessWidget {
 
 class _RecentShipments extends StatelessWidget {
   final Color primary;
-  const _RecentShipments({required this.primary});
+  final String filter;
+
+  const _RecentShipments({required this.primary, this.filter = "All"});
 
   @override
   Widget build(BuildContext context) {
@@ -673,6 +1025,10 @@ class _RecentShipments extends StatelessWidget {
       },
     ];
 
+    final filtered = filter == "All"
+        ? shipments
+        : shipments.where((s) => s["status"] == filter).toList();
+
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,30 +1038,45 @@ class _RecentShipments extends StatelessWidget {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 12),
-          ...shipments.map((s) {
-            return Column(
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: primary.withOpacity(0.10),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(Icons.local_shipping_rounded, color: primary),
-                  ),
-                  title: Text(
-                    s["id"]!,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  subtitle: Text("${s["from"]} → ${s["to"]}"),
-                  trailing: _StatusPill(primary: primary, status: s["status"]!),
+
+          if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: Center(
+                child: Text(
+                  "No shipments found for \"$filter\"",
+                  style: TextStyle(color: Colors.grey.shade700),
                 ),
-                const Divider(height: 1),
-              ],
-            );
-          }).toList(),
+              ),
+            )
+          else
+            ...filtered.map((s) {
+              return Column(
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: primary.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(Icons.local_shipping_rounded, color: primary),
+                    ),
+                    title: Text(
+                      s["id"]!,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    subtitle: Text("${s["from"]} → ${s["to"]}"),
+                    trailing: _StatusPill(
+                      primary: primary,
+                      status: s["status"]!,
+                    ),
+                  ),
+                  const Divider(height: 1),
+                ],
+              );
+            }).toList(),
         ],
       ),
     );
