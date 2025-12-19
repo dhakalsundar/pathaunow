@@ -14,17 +14,13 @@ class PathauNowApp extends StatelessWidget {
       title: 'Pathau Now',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        
         primaryColor: const Color(0xFFF57C00),
 
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFF57C00),
-
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFF57C00)),
         useMaterial3: true,
       ),
       initialRoute: SplashScreen.routeName,
-      routes: {
+      routes: <String, WidgetBuilder>{
         SplashScreen.routeName: (_) => const SplashScreen(),
         OnboardingScreen.routeName: (_) => const OnboardingScreen(),
         LoginScreen.routeName: (_) => const LoginScreen(),

@@ -5,7 +5,6 @@ import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String routeName = '/signup';
-
   const SignupScreen({super.key});
 
   @override
@@ -17,10 +16,18 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   void _signup() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created (demo)')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Account created (demo)')));
     Navigator.pushReplacementNamed(context, LoginScreen.routeName);
   }
 
@@ -34,7 +41,6 @@ class _SignupScreenState extends State<SignupScreen> {
         backgroundColor: const Color(0xFFF57C00),
         elevation: 0,
       ),
-      
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -111,10 +117,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       keyboardType: TextInputType.text,
                     ),
                     const SizedBox(height: 24),
-                    MyButton(
-                      text: 'Sign Up',
-                      onPressed: _signup,
-                    ),
+                    MyButton(text: 'Sign Up', onPressed: _signup),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
