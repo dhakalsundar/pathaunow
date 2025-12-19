@@ -6,7 +6,6 @@ import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
-
   const LoginScreen({super.key});
 
   @override
@@ -17,10 +16,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   void _login() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login successful (demo)')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Login successful (demo)')));
     Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
   }
 
@@ -102,10 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       keyboardType: TextInputType.text,
                     ),
                     const SizedBox(height: 24),
-                    MyButton(
-                      text: 'Login',
-                      onPressed: _login,
-                    ),
+                    MyButton(text: 'Login', onPressed: _login),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

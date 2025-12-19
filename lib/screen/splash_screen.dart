@@ -4,7 +4,6 @@ import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String routeName = '/';
-
   const SplashScreen({super.key});
 
   @override
@@ -34,10 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
-                border: Border.all(
-                  color: const Color(0xFFFFE0B2),
-                  width: 10,
-                ),
+                border: Border.all(color: const Color(0xFFFFE0B2), width: 10),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -60,10 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const Text(
               'Track your courier & parcels\nin real time.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.white70),
             ),
           ],
         ),
