@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../widgets/my_button.dart';
-import '../widgets/my_textfield.dart';
+import '../../../../core/widgets/my_button.dart';
+import '../../../../core/widgets/my_textfield.dart';
 import 'login_screen.dart';
+import '../../../../core/services/hive_auth_service.dart';
+import '../../../../core/models/user.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String routeName = '/signup';
@@ -25,10 +27,34 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _signup() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Account created (demo)')));
-    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+    final String name = _nameController.text.trim();
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
+
+    final service = HiveAuthService();
+    final success = service.signUp(
+      User(name: name, email: email, password: password),
+    );
+    success.then((ok) {
+      if (!mounted) return;
+      if (ok) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Account created')));
+        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Account already exists')));
+      }
+    });
   }
 
   @override
