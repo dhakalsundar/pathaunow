@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pathau_now/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:pathau_now/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:pathau_now/features/auth/domain/usecases/logout_usecase.dart';
 
 class DashboardScreen extends StatefulWidget {
   static const String routeName = '/dashboard';
@@ -783,71 +786,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
         vertical: 16,
       ),
       children: [
-        _CardShell(
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: kPrimary.withOpacity(.12),
-                child: Icon(Icons.person_rounded, color: kPrimary, size: 28),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Guest User",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
+        FutureBuilder(
+          future: GetCurrentUserUseCase(AuthRepositoryImpl()).execute(),
+          builder: (context, AsyncSnapshot snapshot) {
+            final user = snapshot.data;
+            return _CardShell(
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: kPrimary.withOpacity(.12),
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: kPrimary,
+                      size: 28,
                     ),
-                    SizedBox(height: 4),
-                    Text("Sign in to manage orders and addresses"),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: user == null
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                "Guest User",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text("Sign in to manage orders and addresses"),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name ?? user.email ?? 'User',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(user.email ?? ''),
+                            ],
+                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (user == null) ...[
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(context, '/login'),
+                      child: const Text('Login'),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      onPressed: () => Navigator.pushNamed(context, '/signup'),
+                      child: const Text('Sign up'),
+                    ),
+                  ] else ...[
+                    ElevatedButton(
+                      onPressed: () async {
+                        await LogoutUseCase(AuthRepositoryImpl()).execute();
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Logged out')),
+                        );
+                        setState(() {});
+                      },
+                      child: const Text('Logout'),
+                    ),
                   ],
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(onPressed: null, child: Text("Login")), // demo
-            ],
-          ),
+            );
+          },
         ),
         const SizedBox(height: 14),
-        _SettingsTile(
-          icon: Icons.location_on_rounded,
-          title: "Saved Addresses",
-          subtitle: "Home, Office, etc.",
-          onTap: () => _toast("Addresses (demo)"),
-          primary: kPrimary,
-        ),
-        _SettingsTile(
-          icon: Icons.payment_rounded,
-          title: "Payments",
-          subtitle: "Wallet and history",
-          onTap: () => _toast("Payments (demo)"),
-          primary: kPrimary,
-        ),
-        _SettingsTile(
-          icon: Icons.support_agent_rounded,
-          title: "Help & Support",
-          subtitle: "FAQs and contact",
-          onTap: () => _toast("Support (demo)"),
-          primary: kPrimary,
-        ),
-        _SettingsTile(
-          icon: Icons.settings_rounded,
-          title: "Settings",
-          subtitle: "App preferences",
-          onTap: () => _toast("Settings (demo)"),
-          primary: kPrimary,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          "Version 1.0.0 (demo)",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey.shade600),
-        ),
       ],
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/my_button.dart';
 import '../../../../core/widgets/my_textfield.dart';
 import 'login_screen.dart';
+import '../../../dashboard/presentation/pages/dashboard_screen.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/sign_up_usecase.dart';
