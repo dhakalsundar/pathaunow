@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
 
+Color _withOpacityColor(Color c, double o) {
+  final int v = c.toARGB32();
+  final int r = (v >> 16) & 0xFF;
+  final int g = (v >> 8) & 0xFF;
+  final int b = v & 0xFF;
+  return Color.fromRGBO(r, g, b, o);
+}
+
 class OnboardingScreen extends StatefulWidget {
   static const String routeName = '/onboarding';
   const OnboardingScreen({super.key});
@@ -74,7 +82,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              kPrimary.withOpacity(0.10),
+              Color.fromRGBO(245, 124, 0, 0.10),
               Colors.white,
               const Color(0xFFFFF3E0),
             ],
@@ -99,10 +107,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: kPrimary.withOpacity(0.12),
+                                color: Color.fromRGBO(245, 124, 0, 0.12),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: kPrimary.withOpacity(0.18),
+                                  color: Color.fromRGBO(245, 124, 0, 0.18),
                                 ),
                               ),
                               child: Image.asset(
@@ -268,11 +276,14 @@ class _OnboardCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [primary.withOpacity(0.18), primary.withOpacity(0.06)],
+                colors: [
+                  _withOpacityColor(primary, 0.18),
+                  _withOpacityColor(primary, 0.06),
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border.all(color: primary.withOpacity(0.18)),
+              border: Border.all(color: _withOpacityColor(primary, 0.18)),
             ),
             child: Center(
               child: Icon(icon, size: iconSize * 0.50, color: primary),

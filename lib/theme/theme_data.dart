@@ -1,13 +1,16 @@
 // import 'package:flutter/material.dart';
 
 // class AppTheme {
+
 //   static const Color primary = Color(0xFFF57C00);
 
 //   static final ThemeData lightTheme = ThemeData(
 //     useMaterial3: true,
 //     fontFamily: "OpenSans",
 
-//     colorScheme: ColorScheme.fromSeed(seedColor: primary),
+//     colorScheme: ColorScheme.fromSeed(
+//       seedColor: primary,
+//     ),
 //     primaryColor: primary,
 
 //     scaffoldBackgroundColor: const Color(0xFFF8F9FB),
@@ -29,6 +32,7 @@
 //       style: ElevatedButton.styleFrom(
 //         backgroundColor: primary,
 //         foregroundColor: Colors.white,
+//         disabledBackgroundColor: primary.withOpacity(0.5),
 //         padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
 //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
 //         textStyle: const TextStyle(fontWeight: FontWeight.w800),

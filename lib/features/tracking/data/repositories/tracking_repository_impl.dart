@@ -14,6 +14,7 @@ class TrackingRepositoryImpl implements TrackingRepository {
       courierName: parcel.courierName,
       ownerEmail: parcel.ownerEmail,
     );
+
     final box = HiveService.parcelsBox();
     await box.put(parcel.trackingId, dm);
   }

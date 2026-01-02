@@ -8,6 +8,14 @@ import 'package:pathau_now/features/tracking/domain/usecases/create_parcel_useca
 import 'package:pathau_now/features/tracking/domain/usecases/get_parcel_usecase.dart';
 import 'package:uuid/uuid.dart';
 
+Color _withOpacity(Color c, double o) {
+  final int v = c.toARGB32();
+  final int r = (v >> 16) & 0xFF;
+  final int g = (v >> 8) & 0xFF;
+  final int b = v & 0xFF;
+  return Color.fromRGBO(r, g, b, o);
+}
+
 class DashboardScreen extends StatefulWidget {
   static const String routeName = '/dashboard';
   const DashboardScreen({super.key});
@@ -265,7 +273,7 @@ class _TabletNavRail extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primary.withOpacity(0.12),
+                  color: _withOpacity(primary, 0.12),
                 ),
                 child: Icon(
                   Icons.local_shipping_rounded,
@@ -485,6 +493,7 @@ class _DemoTrackingTimeline extends StatelessWidget {
             subtitle: "Parcel collected from sender",
             isDone: true,
           ),
+
           _TimelineItem(
             title: "In transit",
             subtitle: "Moving through sorting hub",
@@ -549,19 +558,188 @@ class _TimelineItem extends StatelessWidget {
   }
 }
 
-class _OrdersTab extends StatelessWidget {
+class _OrdersTab extends StatefulWidget {
   const _OrdersTab();
 
   @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: _Card(
-        child: ListTile(
-          leading: Icon(Icons.inventory_2_rounded),
-          title: Text("Orders"),
-          subtitle: Text("No orders added yet (demo for assignment)."),
+  State<_OrdersTab> createState() => _OrdersTabState();
+}
+
+class _OrdersTabState extends State<_OrdersTab> {
+  List<ParcelEntity> _parcels = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadParcels();
+  }
+
+  Future<void> _loadParcels() async {
+    setState(() => _loading = true);
+    final authRepo = AuthRepositoryImpl();
+    final user = await authRepo.getCurrentUser();
+    if (user == null) {
+      if (!mounted) return;
+      setState(() {
+        _parcels = [];
+        _loading = false;
+      });
+      return;
+    }
+
+    final repo = TrackingRepositoryImpl();
+    final list = await repo.getParcelsForUser(user.email);
+    if (!mounted) return;
+    setState(() {
+      _parcels = list;
+      _loading = false;
+    });
+  }
+
+  Future<void> _assignCourier(String trackingId) async {
+    final TextEditingController ctrl = TextEditingController();
+    final name = await showDialog<String?>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Assign courier'),
+        content: TextField(
+          controller: ctrl,
+          decoration: const InputDecoration(hintText: 'Courier name'),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, ctrl.text.trim()),
+            child: const Text('Assign'),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty) return;
+    final repo = TrackingRepositoryImpl();
+    await repo.assignCourier(trackingId, name);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Assigned $name to $trackingId')));
+    await _loadParcels();
+  }
+
+  Future<void> _updateStatus(String trackingId) async {
+    final statuses = [
+      'Created',
+      'In Transit',
+      'Out for delivery',
+      'Delivered',
+      'Returned',
+      'Pending',
+    ];
+    final chosen = await showDialog<String?>(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: const Text('Update status'),
+        children: statuses
+            .map(
+              (s) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, s),
+                child: Text(s),
+              ),
+            )
+            .toList(),
+      ),
+    );
+    if (chosen == null) return;
+    final repo = TrackingRepositoryImpl();
+    await repo.updateParcelStatus(trackingId, chosen);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Status updated: $chosen')));
+    await _loadParcels();
+  }
+
+  void _showParcelOptions(ParcelEntity p) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                p.trackingId,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+            ListTile(title: Text('Status: ${p.status}')),
+            ListTile(title: Text('Courier: ${p.courierName ?? 'Unassigned'}')),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _assignCourier(p.trackingId),
+                    child: const Text('Assign Courier'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _updateStatus(p.trackingId),
+                    child: const Text('Update Status'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _Card(
+        child: _loading
+            ? const SizedBox(
+                height: 120,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : (_parcels.isEmpty
+                  ? ListTile(
+                      leading: const Icon(Icons.inventory_2_rounded),
+                      title: const Text('Orders'),
+                      subtitle: const Text('No parcels found'),
+                    )
+                  : Column(
+                      children: [
+                        const ListTile(
+                          leading: Icon(Icons.inventory_2_rounded),
+                          title: Text('Your Parcels'),
+                        ),
+                        const Divider(),
+                        ..._parcels.map(
+                          (p) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              p.trackingId,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            subtitle: Text('${p.status} • ${p.recipient}'),
+                            trailing: Text(p.courierName ?? 'No courier'),
+                            onTap: () => _showParcelOptions(p),
+                          ),
+                        ),
+                      ],
+                    )),
       ),
     );
   }
@@ -576,6 +754,7 @@ class _ProfileTab extends StatefulWidget {
 
 class _ProfileTabState extends State<_ProfileTab> {
   UserEntity? _user;
+  List<ParcelEntity> _parcels = [];
 
   @override
   void initState() {
@@ -586,6 +765,16 @@ class _ProfileTabState extends State<_ProfileTab> {
   Future<void> _loadUser() async {
     final repo = AuthRepositoryImpl();
     final u = await repo.getCurrentUser();
+    if (u != null) {
+      final tRepo = TrackingRepositoryImpl();
+      final list = await tRepo.getParcelsForUser(u.email);
+      if (!mounted) return;
+      setState(() {
+        _user = u;
+        _parcels = list;
+      });
+      return;
+    }
     if (!mounted) return;
     setState(() => _user = u);
   }
@@ -613,6 +802,39 @@ class _ProfileTabState extends State<_ProfileTab> {
               leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
               title: Text(_user?.name ?? "Guest"),
               subtitle: Text(_user?.email ?? "Not signed in"),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Your Parcels',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 8),
+                if (_parcels.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      'No parcels yet',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  )
+                else
+                  ..._parcels.map(
+                    (p) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        p.trackingId,
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      subtitle: Text('${p.status} • ${p.recipient}'),
+                      trailing: Text(p.courierName ?? 'No courier'),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
