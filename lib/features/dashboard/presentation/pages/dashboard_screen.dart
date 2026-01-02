@@ -896,7 +896,6 @@ class OrderInfo {
   OrderInfo(this.id, this.status, this.route, this.price, this.meta);
 }
 
-// ---------------- Widgets ----------------
 class _TabletRail extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelect;
@@ -1116,7 +1115,6 @@ class _ResponsiveGrid extends StatelessWidget {
       );
     }
 
-    // tablet: 2x2 but more spaced
     return Row(
       children: [
         Expanded(
