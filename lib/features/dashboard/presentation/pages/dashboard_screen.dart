@@ -461,7 +461,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    // Tablet split view: left list + right details
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Row(
@@ -615,7 +614,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // -------------------- ORDERS --------------------
   Widget _ordersView({required bool isTablet}) {
     if (!isTablet) {
       return ListView(
@@ -651,7 +649,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    // Tablet split view orders
     return Padding(
       padding: const EdgeInsets.all(18),
       child: Row(
