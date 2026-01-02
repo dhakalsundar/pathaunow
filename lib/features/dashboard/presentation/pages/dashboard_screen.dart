@@ -1472,7 +1472,6 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-// ----- Tablet Details widgets -----
 class _TrackingDetails extends StatelessWidget {
   final TrackingInfo info;
   final Color primary;
