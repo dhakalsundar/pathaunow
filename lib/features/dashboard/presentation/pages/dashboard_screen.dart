@@ -783,7 +783,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // -------------------- PROFILE --------------------
   Widget _profileView({required bool isTablet}) {
     return ListView(
       padding: EdgeInsets.symmetric(
@@ -861,7 +860,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// ---------------- Models ----------------
 class TrackingInfo {
   final String id;
   final String status;
