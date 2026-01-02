@@ -46,11 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
       Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Invalid credentials')));
+      return;
     }
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Invalid credentials')));
   }
 
   @override
@@ -68,10 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFFF57C00).withOpacity(0.1),
-              const Color(0xFFFFECDC),
-            ],
+            colors: [Color.fromRGBO(245, 124, 0, 0.1), const Color(0xFFFFECDC)],
           ),
         ),
         child: Center(
