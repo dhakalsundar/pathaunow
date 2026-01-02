@@ -5,6 +5,7 @@ import 'signup_screen.dart';
 import '../../../dashboard/presentation/pages/dashboard_screen.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/set_current_user_usecase.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -38,9 +39,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final repo = AuthRepositoryImpl();
     final usecase = LoginUseCase(repo);
+    final setCurrent = SetCurrentUserUseCase(repo);
     final user = await usecase.execute(email, password);
     if (user != null) {
-      await repo.setCurrentUser(user);
+      await setCurrent.execute(user);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
