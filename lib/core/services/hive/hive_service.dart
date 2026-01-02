@@ -1,21 +1,28 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../models/user.dart';
 import '../../models/user.g.dart';
+import '../../models/parcel.dart';
+import '../../models/parcel.g.dart';
 
 class HiveService {
   static const String usersBoxName = 'usersBox';
   static const String sessionBoxName = 'sessionBox';
+  static const String parcelsBoxName = 'parcelsBox';
 
   static Future<void> init() async {
     await Hive.initFlutter();
     if (!Hive.isAdapterRegistered(0)) {
-      // UserAdapter is provided manually in user.g.dart
       Hive.registerAdapter(UserAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(ParcelAdapter());
     }
     await Hive.openBox<User>(usersBoxName);
     await Hive.openBox<String>(sessionBoxName);
+    await Hive.openBox<Parcel>(parcelsBoxName);
   }
 
   static Box<User> usersBox() => Hive.box<User>(usersBoxName);
   static Box<String> sessionBox() => Hive.box<String>(sessionBoxName);
+  static Box<Parcel> parcelsBox() => Hive.box<Parcel>(parcelsBoxName);
 }

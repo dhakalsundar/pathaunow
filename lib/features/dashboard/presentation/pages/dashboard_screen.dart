@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../../core/services/hive_auth_service.dart';
-import '../../../../core/models/user.dart';
-import '../../../auth/presentation/pages/login_screen.dart';
+import 'package:pathau_now/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:pathau_now/features/auth/domain/entities/user_entity.dart';
+import 'package:pathau_now/features/auth/presentation/pages/login_screen.dart';
+import 'package:pathau_now/features/tracking/data/repositories/tracking_repository_impl.dart';
+import 'package:pathau_now/features/tracking/domain/entities/parcel_entity.dart';
+import 'package:pathau_now/features/tracking/domain/usecases/create_parcel_usecase.dart';
+import 'package:pathau_now/features/tracking/domain/usecases/get_parcel_usecase.dart';
+import 'package:uuid/uuid.dart';
 
 class DashboardScreen extends StatefulWidget {
   static const String routeName = '/dashboard';
@@ -13,6 +18,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   static const Color kPrimary = Color(0xFFF57C00);
+
   int _index = 0;
   final TextEditingController _trackingController = TextEditingController();
 
@@ -22,12 +28,124 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
+  Future<void> _handleTrack() async {
+    final id = _trackingController.text.trim();
+    if (id.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a Tracking ID.')),
+      );
+      return;
+    }
+
+    try {
+      final repo = TrackingRepositoryImpl();
+      final usecase = GetParcelUseCase(repo);
+      final parcel = await usecase.execute(id);
+
+      if (!mounted) return;
+
+      if (parcel == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('No parcel found for: $id')));
+        return;
+      }
+
+      _showParcelDialog(parcel);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Tracking failed: $e')));
+    }
+  }
+
+  void _showParcelDialog(ParcelEntity parcel) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Parcel ${parcel.trackingId}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Sender: ${parcel.sender}'),
+            Text('Recipient: ${parcel.recipient}'),
+            Text('Status: ${parcel.status}'),
+            Text('Courier: ${parcel.courierName ?? 'Unassigned'}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createDemoParcel() async {
+    try {
+      final authRepo = AuthRepositoryImpl();
+      final current = await authRepo.getCurrentUser();
+
+      if (current == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login required to create parcel')),
+        );
+        return;
+      }
+
+      final repo = TrackingRepositoryImpl();
+      final create = CreateParcelUseCase(repo);
+
+      final uuid = const Uuid();
+      final trackingId = "PNOW-${uuid.v4().substring(0, 6).toUpperCase()}";
+
+      final parcel = ParcelEntity(
+        trackingId: trackingId,
+        sender: current.name,
+        recipient: "Receiver Inc.",
+        status: "Created",
+        courierName: null,
+        ownerEmail: current.email,
+      );
+
+      await create.execute(parcel);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Demo parcel created: $trackingId')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Create parcel failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isTablet = MediaQuery.of(context).size.width >= 700;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+        backgroundColor: kPrimary,
+        foregroundColor: Colors.white,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _createDemoParcel,
+        icon: const Icon(Icons.add),
+        label: const Text("New Parcel"),
+        backgroundColor: kPrimary,
+        foregroundColor: Colors.white,
+      ),
       body: SafeArea(
         child: Row(
           children: [
@@ -52,7 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     primary: kPrimary,
                   ),
                   const _OrdersTab(),
-                  _ProfileTab(),
+                  const _ProfileTab(),
                 ],
               ),
             ),
@@ -67,20 +185,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               primary: kPrimary,
             ),
     );
-  }
-
-  void _handleTrack() {
-    final id = _trackingController.text.trim();
-    if (id.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a Tracking ID.")),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("Tracking started for: $id")));
   }
 }
 
@@ -163,15 +267,10 @@ class _TabletNavRail extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: primary.withOpacity(0.12),
                 ),
-                child: Image.asset(
-                  "assets/images/pathau_logo.png",
-                  height: 36,
-                  width: 36,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.local_shipping_rounded,
-                    size: 36,
-                    color: primary,
-                  ),
+                child: Icon(
+                  Icons.local_shipping_rounded,
+                  size: 36,
+                  color: primary,
                 ),
               ),
               const SizedBox(height: 10),
@@ -205,9 +304,9 @@ class _TabletNavRail extends StatelessWidget {
   }
 }
 
-class _HomeDashboard extends StatefulWidget {
+class _HomeDashboard extends StatelessWidget {
   final TextEditingController trackingController;
-  final VoidCallback onTrack;
+  final Future<void> Function() onTrack;
   final Color primary;
 
   const _HomeDashboard({
@@ -217,911 +316,80 @@ class _HomeDashboard extends StatefulWidget {
   });
 
   @override
-  State<_HomeDashboard> createState() => _HomeDashboardState();
-}
-
-class _HomeDashboardState extends State<_HomeDashboard> {
-  String _shipmentFilter = "All";
-
-  final List<String> _recentTrackIds = const [
-    "PNOW-102948",
-    "PNOW-102913",
-    "PNOW-102877",
-  ];
-
-  final List<Map<String, String>> _notifications = const [
-    {"title": "Delivered", "desc": "PNOW-102913 delivered to Kathmandu"},
-    {"title": "Out for delivery", "desc": "PNOW-102948 is on the way"},
-    {"title": "In transit", "desc": "PNOW-102801 reached sorting hub"},
-  ];
-
-  Future<void> _refresh() async {
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Dashboard refreshed (demo).")),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final bool isTablet = MediaQuery.of(context).size.width >= 700;
     final now = DateTime.now();
-    final greeting = _greeting(now.hour);
-    final dateText = _formatDate(now);
+    final greeting = now.hour < 12
+        ? "Good morning"
+        : now.hour < 17
+        ? "Good afternoon"
+        : "Good evening";
 
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _Header(primary: widget.primary, isTablet: isTablet),
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "$greeting 👋",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            dateText,
-                            style: TextStyle(color: Colors.grey.shade700),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: widget.primary.withOpacity(0.10),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: widget.primary.withOpacity(0.18),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.verified_rounded,
-                            color: widget.primary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            "Trusted",
-                            style: TextStyle(
-                              color: widget.primary,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 14),
-
-                _TrackCard(
-                  trackingController: widget.trackingController,
-                  onTrack: widget.onTrack,
-                  primary: widget.primary,
-                ),
-
-                const SizedBox(height: 12),
-
-                _Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Recent Tracking",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: _recentTrackIds.map((id) {
-                          return ActionChip(
-                            label: Text(
-                              id,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            avatar: Icon(
-                              Icons.history_rounded,
-                              color: widget.primary,
-                              size: 18,
-                            ),
-                            onPressed: () {
-                              widget.trackingController.text = id;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text("Tracking ID set: $id")),
-                              );
-                            },
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              side: BorderSide(
-                                color: widget.primary.withOpacity(0.22),
-                              ),
-                            ),
-                            backgroundColor: widget.primary.withOpacity(0.08),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final bool twoCols = constraints.maxWidth >= 900;
-                    if (!twoCols) {
-                      return Column(
-                        children: [
-                          _QuickActions(primary: widget.primary),
-                          const SizedBox(height: 16),
-                          _SummaryCards(primary: widget.primary),
-                        ],
-                      );
-                    }
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _QuickActions(primary: widget.primary)),
-                        const SizedBox(width: 16),
-                        Expanded(child: _SummaryCards(primary: widget.primary)),
-                      ],
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                _Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              "Notifications",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "View all notifications (demo).",
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              "View all",
-                              style: TextStyle(
-                                color: widget.primary,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ..._notifications.take(3).map((n) {
-                        return Column(
-                          children: [
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: widget.primary.withOpacity(0.10),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Icon(
-                                  Icons.notifications_rounded,
-                                  color: widget.primary,
-                                ),
-                              ),
-                              title: Text(
-                                n["title"] ?? "",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              subtitle: Text(n["desc"] ?? ""),
-                            ),
-                            const Divider(height: 1),
-                          ],
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 10,
-                    children: ["All", "In Transit", "Delivered", "Pending"]
-                        .map(
-                          (f) => ChoiceChip(
-                            label: Text(f),
-                            selected: _shipmentFilter == f,
-                            onSelected: (_) =>
-                                setState(() => _shipmentFilter = f),
-                            selectedColor: widget.primary.withOpacity(0.18),
-                            labelStyle: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              color: _shipmentFilter == f
-                                  ? widget.primary
-                                  : Colors.black87,
-                            ),
-                            side: BorderSide(
-                              color: widget.primary.withOpacity(0.22),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                _RecentShipments(
-                  primary: widget.primary,
-                  filter: _shipmentFilter,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _greeting(int hour) {
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  }
-
-  String _formatDate(DateTime d) {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    return "${days[d.weekday % 7]}, ${months[d.month - 1]} ${d.day}";
-  }
-}
-
-class _Header extends StatelessWidget {
-  final Color primary;
-  final bool isTablet;
-
-  const _Header({required this.primary, required this.isTablet});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, isTablet ? 18 : 16, 16, 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primary, primary.withOpacity(0.90), const Color(0xFFFFA726)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          "$greeting 👋",
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
         ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(26),
-          bottomRight: Radius.circular(26),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 14,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.22)),
-            ),
-            child: Image.asset(
-              "assets/images/pathau_logo.png",
-              height: isTablet ? 54 : 44,
-              width: isTablet ? 54 : 44,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.local_shipping_rounded,
-                size: isTablet ? 54 : 44,
-                color: Colors.white,
+        const SizedBox(height: 10),
+        _Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Track your parcel",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "PathauNow Dashboard",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
+              const SizedBox(height: 10),
+              TextField(
+                controller: trackingController,
+                decoration: InputDecoration(
+                  hintText: "e.g. PNOW-ABC123",
+                  prefixIcon: Icon(Icons.search_rounded, color: primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: primary, width: 2),
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  "Track courier & parcels in real time",
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Notifications: demo only")),
-              );
-            },
-            icon: const Icon(Icons.notifications_rounded, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrackCard extends StatelessWidget {
-  final TextEditingController trackingController;
-  final VoidCallback onTrack;
-  final Color primary;
-
-  const _TrackCard({
-    required this.trackingController,
-    required this.onTrack,
-    required this.primary,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Track your parcel",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            "Enter a Tracking ID to see current status.",
-            style: TextStyle(color: Colors.grey.shade700),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F7F7),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0x11000000)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.search_rounded, color: primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: trackingController,
-                    decoration: const InputDecoration(
-                      hintText: "e.g. PNOW-123456",
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: onTrack,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => onTrack(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primary,
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text("Track"),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActions extends StatelessWidget {
-  final Color primary;
-  const _QuickActions({required this.primary});
-
-  void _openRatesCalculator(BuildContext context) {
-    final wCtrl = TextEditingController();
-    final dCtrl = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Rate Calculator (Demo)"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: wCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Weight (kg)",
-                hintText: "e.g. 2",
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: dCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Distance (km)",
-                hintText: "e.g. 10",
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "Formula (demo): Rs. 50 + (10 × kg) + (5 × km)",
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final kg = double.tryParse(wCtrl.text.trim()) ?? 0;
-              final km = double.tryParse(dCtrl.text.trim()) ?? 0;
-              final cost = 50 + (10 * kg) + (5 * km);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    "Estimated Cost: Rs. ${cost.toStringAsFixed(0)} (demo)",
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text("Calculate"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Quick Actions",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _ActionTile(
-                primary: primary,
-                icon: Icons.add_box_rounded,
-                label: "Create",
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Create Shipment: demo only")),
-                ),
-              ),
-              _ActionTile(
-                primary: primary,
-                icon: Icons.location_on_rounded,
-                label: "Offices",
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Find Offices: demo only")),
-                ),
-              ),
-              _ActionTile(
-                primary: primary,
-                icon: Icons.support_agent_rounded,
-                label: "Support",
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Support: demo only")),
-                ),
-              ),
-              _ActionTile(
-                primary: primary,
-                icon: Icons.receipt_long_rounded,
-                label: "Rates",
-                onTap: () => _openRatesCalculator(context),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionTile extends StatelessWidget {
-  final Color primary;
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ActionTile({
-    required this.primary,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Container(
-        width: 150,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: primary.withOpacity(0.08),
-          border: Border.all(color: primary.withOpacity(0.18)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: primary.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: primary),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryCards extends StatelessWidget {
-  final Color primary;
-  const _SummaryCards({required this.primary});
-
-  @override
-  Widget build(BuildContext context) {
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "This Week Summary",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  primary: primary,
-                  title: "In Transit",
-                  value: "4",
-                  icon: Icons.local_shipping_rounded,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _StatCard(
-                  primary: primary,
-                  title: "Delivered",
-                  value: "12",
-                  icon: Icons.check_circle_rounded,
+                  child: const Text("Track Now"),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  primary: primary,
-                  title: "Pending",
-                  value: "2",
-                  icon: Icons.pending_actions_rounded,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _StatCard(
-                  primary: primary,
-                  title: "Returned",
-                  value: "1",
-                  icon: Icons.assignment_return_rounded,
-                ),
-              ),
-            ],
+        ),
+        const SizedBox(height: 12),
+        _Card(
+          child: ListTile(
+            leading: Icon(Icons.info_rounded, color: primary),
+            title: const Text("Demo Mode"),
+            subtitle: const Text("Create a demo parcel using the + button."),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final Color primary;
-  final String title;
-  final String value;
-  final IconData icon;
-
-  const _StatCard({
-    required this.primary,
-    required this.title,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        border: Border.all(color: const Color(0x11000000)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0F000000),
-            blurRadius: 10,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: primary),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(color: Colors.grey.shade700)),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RecentShipments extends StatelessWidget {
-  final Color primary;
-  final String filter;
-
-  const _RecentShipments({required this.primary, this.filter = "All"});
-
-  @override
-  Widget build(BuildContext context) {
-    const shipments = [
-      {
-        "id": "PNOW-102948",
-        "from": "Kathmandu",
-        "to": "Lalitpur",
-        "status": "In Transit",
-      },
-      {
-        "id": "PNOW-102913",
-        "from": "Pokhara",
-        "to": "Kathmandu",
-        "status": "Delivered",
-      },
-      {
-        "id": "PNOW-102877",
-        "from": "Bhaktapur",
-        "to": "Kathmandu",
-        "status": "Pending",
-      },
-      {
-        "id": "PNOW-102801",
-        "from": "Chitwan",
-        "to": "Pokhara",
-        "status": "In Transit",
-      },
-    ];
-
-    final filtered = filter == "All"
-        ? shipments
-        : shipments.where((s) => s["status"] == filter).toList();
-
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Recent Shipments",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-
-          if (filtered.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              child: Center(
-                child: Text(
-                  "No shipments found for \"$filter\"",
-                  style: TextStyle(color: Colors.grey.shade700),
-                ),
-              ),
-            )
-          else
-            ...filtered.map((s) {
-              return Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: primary.withOpacity(0.10),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(Icons.local_shipping_rounded, color: primary),
-                    ),
-                    title: Text(
-                      s["id"]!,
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    subtitle: Text("${s["from"]} → ${s["to"]}"),
-                    trailing: _StatusPill(
-                      primary: primary,
-                      status: s["status"]!,
-                    ),
-                  ),
-                  const Divider(height: 1),
-                ],
-              );
-            }).toList(),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  final Color primary;
-  final String status;
-  const _StatusPill({required this.primary, required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    Color bg = primary.withOpacity(0.12);
-    Color fg = primary;
-
-    if (status == "Delivered") {
-      bg = const Color(0xFF2E7D32).withOpacity(0.12);
-      fg = const Color(0xFF2E7D32);
-    } else if (status == "Pending") {
-      bg = const Color(0xFFF9A825).withOpacity(0.18);
-      fg = const Color(0xFFF9A825);
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: fg.withOpacity(0.25)),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: fg),
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _TrackTab extends StatelessWidget {
   final TextEditingController trackingController;
-  final VoidCallback onTrack;
+  final Future<void> Function() onTrack;
   final Color primary;
 
   const _TrackTab({
@@ -1175,7 +443,7 @@ class _TrackTab extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: onTrack,
+                    onPressed: () => onTrack(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primary,
                       foregroundColor: Colors.white,
@@ -1300,14 +568,14 @@ class _OrdersTab extends StatelessWidget {
 }
 
 class _ProfileTab extends StatefulWidget {
-  _ProfileTab();
+  const _ProfileTab();
 
   @override
   State<_ProfileTab> createState() => _ProfileTabState();
 }
 
 class _ProfileTabState extends State<_ProfileTab> {
-  User? _user;
+  UserEntity? _user;
 
   @override
   void initState() {
@@ -1315,17 +583,16 @@ class _ProfileTabState extends State<_ProfileTab> {
     _loadUser();
   }
 
-  void _loadUser() {
-    final service = HiveAuthService();
-    final user = service.getCurrentUser();
-    setState(() {
-      _user = user;
-    });
+  Future<void> _loadUser() async {
+    final repo = AuthRepositoryImpl();
+    final u = await repo.getCurrentUser();
+    if (!mounted) return;
+    setState(() => _user = u);
   }
 
-  void _logout() async {
-    final service = HiveAuthService();
-    await service.logout();
+  Future<void> _logout() async {
+    final repo = AuthRepositoryImpl();
+    await repo.logout();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, LoginScreen.routeName);
   }
@@ -1343,16 +610,16 @@ class _ProfileTabState extends State<_ProfileTab> {
           const SizedBox(height: 12),
           _Card(
             child: ListTile(
-              leading: CircleAvatar(child: Icon(Icons.person_rounded)),
-              title: Text(_user?.name ?? 'PathauNow User'),
-              subtitle: Text(_user?.email ?? 'user@email.com'),
+              leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
+              title: Text(_user?.name ?? "Guest"),
+              subtitle: Text(_user?.email ?? "Not signed in"),
             ),
           ),
           const SizedBox(height: 12),
           _Card(
             child: ListTile(
               leading: const Icon(Icons.logout_rounded),
-              title: const Text('Logout'),
+              title: const Text("Logout"),
               onTap: _logout,
             ),
           ),

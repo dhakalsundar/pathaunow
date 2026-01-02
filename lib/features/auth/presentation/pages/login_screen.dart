@@ -3,7 +3,8 @@ import '../../../../core/widgets/my_button.dart';
 import '../../../../core/widgets/my_textfield.dart';
 import 'signup_screen.dart';
 import '../../../dashboard/presentation/pages/dashboard_screen.dart';
-import '../../../../core/services/hive_auth_service.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/usecases/login_usecase.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -35,10 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final service = HiveAuthService();
-    final user = service.login(email, password);
+    final repo = AuthRepositoryImpl();
+    final usecase = LoginUseCase(repo);
+    final user = await usecase.execute(email, password);
     if (user != null) {
-      await service.setCurrentUser(user);
+      await repo.setCurrentUser(user);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

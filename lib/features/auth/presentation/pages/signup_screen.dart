@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/my_button.dart';
 import '../../../../core/widgets/my_textfield.dart';
 import 'login_screen.dart';
-import '../../../../core/services/hive_auth_service.dart';
-import '../../../../core/models/user.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/sign_up_usecase.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String routeName = '/signup';
@@ -26,7 +27,7 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _signup() {
+  Future<void> _signup() async {
     final String name = _nameController.text.trim();
     final String email = _emailController.text.trim();
     final String password = _passwordController.text;
@@ -38,23 +39,22 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final service = HiveAuthService();
-    final success = service.signUp(
-      User(name: name, email: email, password: password),
+    final repo = AuthRepositoryImpl();
+    final usecase = SignUpUseCase(repo);
+    final ok = await usecase.execute(
+      UserEntity(name: name, email: email, password: password),
     );
-    success.then((ok) {
-      if (!mounted) return;
-      if (ok) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Account created')));
-        Navigator.pushReplacementNamed(context, LoginScreen.routeName);
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Account already exists')));
-      }
-    });
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Account created')));
+      Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Account already exists')));
+    }
   }
 
   @override
