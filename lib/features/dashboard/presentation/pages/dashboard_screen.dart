@@ -15,7 +15,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _index = 0;
   final TextEditingController _trackingController = TextEditingController();
 
-  // Tablet split-view selection
   TrackingInfo? _selectedTracking;
   OrderInfo? _selectedOrder;
 
@@ -88,7 +87,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // Default selection for tablet details
     _selectedTracking = _demoTrackingDb["PN-1001"];
     _selectedOrder = _orders.first;
   }
@@ -278,7 +276,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // -------------------- HOME --------------------
   Widget _homeView({required bool isTablet}) {
     return ListView(
       padding: EdgeInsets.symmetric(
@@ -346,7 +343,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // -------------------- TRACK --------------------
   Widget _trackView({required bool isTablet}) {
     if (!isTablet) {
       return ListView(
