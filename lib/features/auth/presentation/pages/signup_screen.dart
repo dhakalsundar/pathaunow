@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../widgets/my_button.dart';
-import '../widgets/my_textfield.dart';
+import '../../../../core/widgets/my_button.dart';
+import '../../../../core/widgets/my_textfield.dart';
 import 'login_screen.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/sign_up_usecase.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String routeName = '/signup';
@@ -24,11 +27,34 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _signup() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Account created (demo)')));
-    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+  Future<void> _signup() async {
+    final String name = _nameController.text.trim();
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
+
+    final repo = AuthRepositoryImpl();
+    final usecase = SignUpUseCase(repo);
+    final ok = await usecase.execute(
+      UserEntity(name: name, email: email, password: password),
+    );
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Account created')));
+      Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Account already exists')));
+    }
   }
 
   @override

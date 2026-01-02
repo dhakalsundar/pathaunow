@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../widgets/my_button.dart';
-import '../widgets/my_textfield.dart';
+import '../../../../core/widgets/my_button.dart';
+import '../../../../core/widgets/my_textfield.dart';
 import 'signup_screen.dart';
-import 'dashboard_screen.dart';
+import '../../../dashboard/presentation/pages/dashboard_screen.dart';
+import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/usecases/login_usecase.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -23,11 +25,32 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Login successful (demo)')));
-    Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
+  Future<void> _login() async {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    final repo = AuthRepositoryImpl();
+    final usecase = LoginUseCase(repo);
+    final user = await usecase.execute(email, password);
+    if (user != null) {
+      await repo.setCurrentUser(user);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login successful')));
+      Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid credentials')));
+    }
   }
 
   @override
