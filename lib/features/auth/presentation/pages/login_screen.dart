@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     final String email = _emailController.text.trim();
     final String password = _passwordController.text;
 
@@ -38,6 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final service = HiveAuthService();
     final user = service.login(email, password);
     if (user != null) {
+      await service.setCurrentUser(user);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));

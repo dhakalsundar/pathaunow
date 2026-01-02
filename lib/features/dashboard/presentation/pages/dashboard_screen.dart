@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../core/services/hive_auth_service.dart';
+import '../../../../core/models/user.dart';
+import '../../../auth/presentation/pages/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   static const String routeName = '/dashboard';
@@ -49,7 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     primary: kPrimary,
                   ),
                   const _OrdersTab(),
-                  const _ProfileTab(),
+                  _ProfileTab(),
                 ],
               ),
             ),
@@ -1296,25 +1299,61 @@ class _OrdersTab extends StatelessWidget {
   }
 }
 
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
+class _ProfileTab extends StatefulWidget {
+  _ProfileTab();
+
+  @override
+  State<_ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<_ProfileTab> {
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  void _loadUser() {
+    final service = HiveAuthService();
+    final user = service.getCurrentUser();
+    setState(() {
+      _user = user;
+    });
+  }
+
+  void _logout() async {
+    final service = HiveAuthService();
+    await service.logout();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: ListView(
-        children: const [
-          Text(
+        children: [
+          const Text(
             "Profile",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _Card(
             child: ListTile(
               leading: CircleAvatar(child: Icon(Icons.person_rounded)),
-              title: Text("PathauNow User"),
-              subtitle: Text("user@email.com"),
+              title: Text(_user?.name ?? 'PathauNow User'),
+              subtitle: Text(_user?.email ?? 'user@email.com'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _Card(
+            child: ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: const Text('Logout'),
+              onTap: _logout,
             ),
           ),
         ],
