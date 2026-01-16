@@ -18,7 +18,6 @@ class AuthRepositoryImpl implements AuthRepository {
     final hive = HiveAuthService();
     _local = AuthLocalDatasource(service: hive);
   }
-
   @override
   Future<bool> signUp(UserEntity user) async {
     return _remote.signup(user.name, user.email, user.password);

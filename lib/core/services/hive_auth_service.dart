@@ -4,7 +4,6 @@ import 'hive/hive_service.dart';
 
 class HiveAuthService {
   Box<User> get _box => HiveService.usersBox();
-
   Future<bool> signUp(User user) async {
     final box = _box;
     if (box.containsKey(user.email)) {
