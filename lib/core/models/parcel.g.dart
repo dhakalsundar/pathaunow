@@ -1,4 +1,3 @@
-// Manual Hive TypeAdapter for Parcel
 import 'package:hive/hive.dart';
 import 'parcel.dart';
 

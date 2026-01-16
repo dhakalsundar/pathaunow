@@ -3,13 +3,12 @@ import '../models/user.dart';
 import 'hive/hive_service.dart';
 
 class HiveAuthService {
-  /// No-op init here; HiveService.init() should be called at app start.
   Box<User> get _box => HiveService.usersBox();
 
   Future<bool> signUp(User user) async {
     final box = _box;
     if (box.containsKey(user.email)) {
-      return false; // already exists
+      return false;
     }
     await box.put(user.email, user);
     return true;
@@ -23,13 +22,11 @@ class HiveAuthService {
     return null;
   }
 
-  /// Mark given user's email as current session user
   Future<void> setCurrentUser(User user) async {
     final sbox = HiveService.sessionBox();
     await sbox.put('currentUserEmail', user.email);
   }
 
-  /// Return currently logged-in user or null
   User? getCurrentUser() {
     final sbox = HiveService.sessionBox();
     final email = sbox.get('currentUserEmail');
