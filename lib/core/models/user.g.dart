@@ -1,5 +1,3 @@
-// GENERATED CODE - manual Hive TypeAdapter for `User`
-// Do not modify by hand unless you know what you're doing.
 import 'package:hive/hive.dart';
 import 'user.dart';
 
