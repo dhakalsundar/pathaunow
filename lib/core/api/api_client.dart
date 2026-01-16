@@ -40,7 +40,6 @@ class ApiClient {
       return decoded == null ? <String, dynamic>{} : decodeToMap(decoded);
     }
 
-    // Try to extract a message from response
     final msg = (decoded is Map && decoded["message"] != null)
         ? decoded["message"].toString()
         : "Request failed (${res.statusCode})";

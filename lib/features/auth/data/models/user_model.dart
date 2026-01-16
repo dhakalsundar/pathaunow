@@ -14,8 +14,7 @@ class UserModel extends UserEntity {
     return UserModel(
       name: (json["name"] ?? "").toString(),
       email: (json["email"] ?? "").toString(),
-      password:
-          password, // we keep password because your UserEntity requires it
+      password: password,
     );
   }
 }

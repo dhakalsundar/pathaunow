@@ -11,14 +11,12 @@ class AuthResponseModel {
     required String password,
     required String fallbackEmail,
   }) {
-    // Very defensive parsing (works with many API shapes)
     final token = json["token"]?.toString();
 
     Map<String, dynamic>? userJson;
     final u = json["user"];
     if (u is Map) userJson = Map<String, dynamic>.from(u);
 
-    // Some APIs return {data:{user:{...}, token:"..."}}
     final data = json["data"];
     if (userJson == null && data is Map) {
       final du = data["user"];

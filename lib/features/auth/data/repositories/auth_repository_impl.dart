@@ -21,13 +21,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<bool> signUp(UserEntity user) async {
-    // API signup
     return _remote.signup(user.name, user.email, user.password);
   }
 
   @override
   Future<UserEntity?> login(String email, String password) async {
-    // API login
     final res = await _remote.login(email, password);
     debugPrint(' Raw response user: ${res.user}');
     debugPrint('Name: ${res.user?.name}');
@@ -44,7 +42,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> setCurrentUser(UserEntity user) async {
-    // Store only "current user session" locally (Hive)
     await _local.setCurrentUser(
       name: user.name,
       email: user.email,
