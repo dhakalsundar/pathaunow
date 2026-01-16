@@ -5,7 +5,6 @@ class AuthLocalDatasource {
   final HiveAuthService service;
 
   AuthLocalDatasource({required this.service});
-
   Future<void> setCurrentUser({
     required String name,
     required String email,

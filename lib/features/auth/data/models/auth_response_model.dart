@@ -12,7 +12,6 @@ class AuthResponseModel {
     required String fallbackEmail,
   }) {
     final token = json["token"]?.toString();
-
     Map<String, dynamic>? userJson;
     final u = json["user"];
     if (u is Map) userJson = Map<String, dynamic>.from(u);

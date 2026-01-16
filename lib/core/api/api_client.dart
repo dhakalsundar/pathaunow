@@ -14,7 +14,6 @@ class ApiClient {
     Object? body,
   }) async {
     final uri = Uri.parse("$baseUrl$path");
-
     final res = await _client.post(
       uri,
       headers: {"Content-Type": "application/json", ...?headers},
@@ -35,7 +34,6 @@ class ApiClient {
         decoded = {"message": res.body};
       }
     }
-
     if (res.statusCode >= 200 && res.statusCode < 300) {
       return decoded == null ? <String, dynamic>{} : decodeToMap(decoded);
     }
