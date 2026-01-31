@@ -11,12 +11,9 @@ void main() {
     late AuthViewModel authViewModel;
     late MockAuthRepository mockRepository;
 
-    // Track whether this test suite opened the box so we don't close a box
-    // that was opened by other suites or earlier setup.
     bool _openedSessionBox = false;
 
     setUpAll(() async {
-      // Initialize a Hive temp directory for tests and open session box if needed
       Hive.init('.');
       if (!Hive.isBoxOpen('sessionBox')) {
         await Hive.openBox<String>('sessionBox');
@@ -52,12 +49,10 @@ void main() {
 
     test('AuthViewModel can be disposed', () {
       authViewModel.dispose();
-      // Should not throw
       expect(true, isTrue);
     });
 
     test('AuthViewModel loading state can be set', () {
-      // Initially should not be loading
       expect(authViewModel.isLoading, isFalse);
     });
 
@@ -93,7 +88,6 @@ void main() {
     });
 
     test('AuthViewModel isLoading property exists', () {
-      // Should have isLoading property that is boolean
       expect(authViewModel.isLoading, isA<bool>());
     });
 
@@ -107,7 +101,6 @@ void main() {
 
     test('AuthViewModel multiple dispose calls throw error', () {
       authViewModel.dispose();
-      // Second dispose should throw FlutterError
       expect(() => authViewModel.dispose(), throwsFlutterError);
     });
 
@@ -118,7 +111,6 @@ void main() {
       authViewModel.addListener(listener);
       authViewModel.dispose();
 
-      // After dispose, listener should not be called
       expect(count, equals(0));
     });
 

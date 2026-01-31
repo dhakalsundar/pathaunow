@@ -29,12 +29,10 @@ void main() {
 
     test('HiveService.getToken returns null when no token', () {
       final token = HiveService.getToken();
-      // Should return null or string
       expect(token == null || token is String, isTrue);
     });
 
     test('HiveService box names are defined', () {
-      // Check that box names exist as constants
       expect(HiveService.usersBoxName, equals('usersBox'));
       expect(HiveService.sessionBoxName, equals('sessionBox'));
       expect(HiveService.parcelsBoxName, equals('parcelsBox'));
