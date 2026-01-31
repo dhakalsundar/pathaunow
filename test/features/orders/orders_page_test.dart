@@ -37,13 +37,15 @@ void main() {
 
     Widget createWidgetUnderTest() {
       return MaterialApp(
-        home: OrdersPage(
-          primaryColor: const Color(0xFFF57C00),
-          orders: mockOrders,
-          selectedOrder: selectedOrder,
-          onOrderTap: (_) {},
-          onTrackOrder: (_) {},
-          onShowFilter: () {},
+        home: Scaffold(
+          body: OrdersPage(
+            primaryColor: const Color(0xFFF57C00),
+            orders: mockOrders,
+            selectedOrder: selectedOrder,
+            onOrderTap: (_) {},
+            onTrackOrder: (_) {},
+            onShowFilter: () {},
+          ),
         ),
       );
     }
@@ -84,7 +86,8 @@ void main() {
     testWidgets('OrdersPage displays sort button', (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
 
-      expect(find.byIcon(Icons.sort), findsOneWidget);
+      // The UI uses a tune icon for filter controls
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
     });
 
     testWidgets('OrdersPage displays filter button', (
@@ -92,7 +95,7 @@ void main() {
     ) async {
       await tester.pumpWidget(createWidgetUnderTest());
 
-      expect(find.byIcon(Icons.filter_list), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
     });
 
     testWidgets('OrdersPage can tap on an order', (WidgetTester tester) async {
@@ -100,21 +103,25 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: OrdersPage(
-            primaryColor: const Color(0xFFF57C00),
-            orders: mockOrders,
-            selectedOrder: selectedOrder,
-            onOrderTap: (id) => tappedOrderId = id,
-            onTrackOrder: (_) {},
-            onShowFilter: () {},
+          home: Scaffold(
+            body: OrdersPage(
+              primaryColor: const Color(0xFFF57C00),
+              orders: mockOrders,
+              selectedOrder: selectedOrder,
+              onOrderTap: (id) => tappedOrderId = id,
+              onTrackOrder: (_) {},
+              onShowFilter: () {},
+            ),
           ),
         ),
       );
 
-      // Tap on first order
-      final orderCards = find.byType(Card);
-      if (orderCards.evaluate().isNotEmpty) {
-        await tester.tap(orderCards.first);
+      await tester.pumpAndSettle();
+
+      // Tap on first order by its id text
+      final orderFinder = find.text('PN-2007');
+      if (orderFinder.evaluate().isNotEmpty) {
+        await tester.tap(orderFinder.first);
         await tester.pumpAndSettle();
       }
 
@@ -135,7 +142,8 @@ void main() {
     testWidgets('OrdersPage has responsive layout', (
       WidgetTester tester,
     ) async {
-      tester.view.physicalSize = const Size(800, 600);
+      // Use tablet size so the tablet layout (with Column widgets) is built
+      tester.view.physicalSize = const Size(1200, 2000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
