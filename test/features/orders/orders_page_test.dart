@@ -132,14 +132,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Selected order (PN-2007 - Delivered) should be visible
       expect(find.text('PN-2007'), findsWidgets);
     });
 
     testWidgets('OrdersPage has responsive layout', (
       WidgetTester tester,
     ) async {
-      // Use tablet size so the tablet layout (with Column widgets) is built
       tester.view.physicalSize = const Size(1200, 2000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
