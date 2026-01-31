@@ -81,7 +81,6 @@ void main() {
 
     test('ParcelViewModel multiple dispose calls throw FlutterError', () {
       parcelViewModel.dispose();
-      // Second dispose is expected to throw FlutterError in debug mode
       expect(() => parcelViewModel.dispose(), throwsFlutterError);
     });
 
