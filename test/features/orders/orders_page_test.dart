@@ -86,7 +86,6 @@ void main() {
     testWidgets('OrdersPage displays sort button', (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
 
-      // The UI uses a tune icon for filter controls
       expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
     });
 
@@ -118,14 +117,12 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Tap on first order by its id text
       final orderFinder = find.text('PN-2007');
       if (orderFinder.evaluate().isNotEmpty) {
         await tester.tap(orderFinder.first);
         await tester.pumpAndSettle();
       }
 
-      // Test passes
       expect(true, isTrue);
     });
 
