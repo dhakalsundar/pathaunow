@@ -1,4 +1,3 @@
-/// Custom Exceptions
 library;
 
 class AppException implements Exception {
@@ -41,7 +40,6 @@ class ServerException extends AppException {
     : super(type: 'SERVER_ERROR', statusCode: 500);
 }
 
-/// Result wrapper for error handling
 abstract class Result<T> {
   R when<R>({
     required R Function(T data) onSuccess,

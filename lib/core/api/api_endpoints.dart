@@ -1,9 +1,6 @@
 import 'package:pathau_now/config/app_config.dart';
 
-/// API Endpoints following clean architecture
-/// Uses centralized AppConfig for base URL configuration
 class ApiEndpoints {
-  // Base URL from centralized config
   static String get baseUrl => AppConfig.apiBaseUrl;
 
   // Auth endpoints

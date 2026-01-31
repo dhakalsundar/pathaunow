@@ -13,13 +13,11 @@ class TrackingProvider extends ChangeNotifier {
   bool _isLoading = false;
   AppException? _error;
 
-  // Getters
   TrackingEntity? get currentTracking => _currentTracking;
   List<TrackingEntity> get trackingHistory => _trackingHistory;
   bool get isLoading => _isLoading;
   AppException? get error => _error;
 
-  // Get tracking by parcel ID
   Future<void> getTracking(String parcelId) async {
     _setLoading(true);
     _clearError();
@@ -34,7 +32,6 @@ class TrackingProvider extends ChangeNotifier {
     }
   }
 
-  // Get tracking history
   Future<void> getTrackingHistory(String parcelId, {int limit = 50}) async {
     _setLoading(true);
     _clearError();
@@ -50,7 +47,6 @@ class TrackingProvider extends ChangeNotifier {
     }
   }
 
-  // Stream tracking updates (real-time)
   void streamTracking(String parcelId) {
     _trackingRepository
         .streamTracking(parcelId)
@@ -65,7 +61,6 @@ class TrackingProvider extends ChangeNotifier {
         );
   }
 
-  // Private helpers
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();

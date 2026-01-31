@@ -20,14 +20,12 @@ class ParcelProvider extends ChangeNotifier {
     required this.createParcelUseCase,
   });
 
-  // Getters
   ParcelEntity? get currentParcel => _currentParcel;
   List<ParcelEntity> get userParcels => _userParcels;
   List<TrackingEntity> get trackingHistory => _trackingHistory;
   bool get isLoading => _isLoading;
   AppException? get error => _error;
 
-  // Get parcel tracking by ID
   Future<void> getParcelTracking(String trackingId) async {
     _setLoading(true);
     _clearError();
@@ -40,7 +38,6 @@ class ParcelProvider extends ChangeNotifier {
     }
   }
 
-  // Get user's parcels
   Future<void> getUserParcels(
     String userId, {
     int page = 1,
@@ -61,7 +58,6 @@ class ParcelProvider extends ChangeNotifier {
     }
   }
 
-  // Create new parcel
   Future<void> createParcel({
     required String userId,
     required ParcelSender sender,
@@ -90,7 +86,6 @@ class ParcelProvider extends ChangeNotifier {
     }
   }
 
-  // Private helpers
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
