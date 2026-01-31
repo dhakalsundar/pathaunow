@@ -13,13 +13,11 @@ class UserProvider extends ChangeNotifier {
 
   UserProvider({required this.userRepository});
 
-  // Getters
   UserEntity? get currentUser => _currentUser;
   List<UserEntity> get nearbyRiders => _nearbyRiders;
   bool get isLoading => _isLoading;
   AppException? get error => _error;
 
-  // Update user profile
   Future<void> updateUserProfile(Map<String, dynamic> updateData) async {
     _setLoading(true);
     _clearError();
@@ -37,7 +35,6 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  // Add address
   Future<void> addAddress(AddressEntity address) async {
     _setLoading(true);
     _clearError();
@@ -55,7 +52,6 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  // Get nearby riders
   Future<void> getNearbyRiders(
     double latitude,
     double longitude, {
@@ -76,20 +72,17 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  // Set current user (after login)
   void setCurrentUser(UserEntity user) {
     _currentUser = user;
     notifyListeners();
   }
 
-  // Clear current user (after logout)
   void clearCurrentUser() {
     _currentUser = null;
     _nearbyRiders = [];
     notifyListeners();
   }
 
-  // Private helpers
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();

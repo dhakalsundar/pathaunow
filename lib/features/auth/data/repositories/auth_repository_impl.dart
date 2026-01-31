@@ -28,7 +28,6 @@ abstract class AuthRepository {
     String? profileImage,
   });
 
-  /// Upload a profile image file and update profile atomically on the server.
   Future<Map<String, dynamic>> uploadProfileImage(File imageFile);
 
   Future<void> logout();
@@ -55,7 +54,6 @@ class AuthRepositoryImpl implements AuthRepository {
            authRemoteDataSource ?? AuthRemoteDataSourceImpl(),
        _addressRemoteDataSource =
            addressRemoteDataSource ?? AddressRemoteDataSourceImpl() {
-    // Load token on initialization and set it in HttpService
     _initializeToken();
   }
 
@@ -64,10 +62,10 @@ class AuthRepositoryImpl implements AuthRepository {
     if (token != null && token.isNotEmpty) {
       HttpService.setToken(token);
       print(
-        '🔐 AuthRepository: Token loaded from storage and set in HttpService',
+        ' AuthRepository: Token loaded from storage and set in HttpService',
       );
     } else {
-      print('🔐 AuthRepository: No stored token found');
+      print(' AuthRepository: No stored token found');
     }
   }
 
@@ -79,16 +77,14 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      print('📦 AuthRepository: Starting signup process...');
-      print('📦 AuthRepository: Email: $email');
+      print(' AuthRepository: Starting signup process...');
+      print(' AuthRepository: Email: $email');
 
-      // Check internet connectivity
       final hasInternet = await ConnectivityService.hasConnectionFast();
-      print('📦 AuthRepository: Internet available: $hasInternet');
+      print(' AuthRepository: Internet available: $hasInternet');
 
       if (!hasInternet) {
-        print('⚠️ AuthRepository: No internet, saving user locally');
-        // Save user data locally for offline signup
+        print(' AuthRepository: No internet, saving user locally');
         final localUser = {
           'id': 'local_${DateTime.now().millisecondsSinceEpoch}',
           'name': name,
@@ -97,7 +93,7 @@ class AuthRepositoryImpl implements AuthRepository {
           'profileImage': null,
           'createdAt': DateTime.now().toIso8601String(),
           'isEmailVerified': false,
-          'isLocal': true, // Flag to sync later
+          'isLocal': true,
         };
 
         await HiveService.sessionBox().put(
@@ -106,7 +102,6 @@ class AuthRepositoryImpl implements AuthRepository {
         );
         await HiveService.sessionBox().put('user', jsonEncode(localUser));
 
-        // Generate a temporary local token
         final localToken =
             'local_token_${DateTime.now().millisecondsSinceEpoch}';
         await saveToken(localToken);
@@ -127,26 +122,25 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
 
-      print('📦 AuthRepository: Response received from data source');
+      print(' AuthRepository: Response received from data source');
 
       if (response['token'] != null) {
-        print('📦 AuthRepository: Token received, saving...');
+        print(' AuthRepository: Token received, saving...');
         await saveToken(response['token']);
         HttpService.setToken(response['token']);
-        print('📦 AuthRepository: Token saved successfully');
+        print(' AuthRepository: Token saved successfully');
       } else {
-        print('⚠️ AuthRepository: No token in response');
+        print(' AuthRepository: No token in response');
       }
 
-      print('✅ AuthRepository: Signup completed successfully');
+      print(' AuthRepository: Signup completed successfully');
       return response;
     } catch (e) {
-      print('❌ AuthRepository: Signup error: $e');
+      print(' AuthRepository: Signup error: $e');
 
-      // On network error, fallback to local storage
       if (e.toString().contains('Network') ||
           e.toString().contains('Connection')) {
-        print('⚠️ AuthRepository: Network error, saving user locally');
+        print(' AuthRepository: Network error, saving user locally');
         final localUser = {
           'id': 'local_${DateTime.now().millisecondsSinceEpoch}',
           'name': name,
@@ -190,37 +184,35 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      print('📦 AuthRepository: Starting login process...');
-      print('📦 AuthRepository: Email: $email');
+      print(' AuthRepository: Starting login process...');
+      print(' AuthRepository: Email: $email');
 
       final response = await _authRemoteDataSource.login(
         email: email,
         password: password,
       );
 
-      print('📦 AuthRepository: DataSource response received');
-      print('📦 AuthRepository: Success: ${response['success']}');
-      print(
-        '📦 AuthRepository: User data present: ${response['user'] != null}',
-      );
+      print(' AuthRepository: DataSource response received');
+      print(' AuthRepository: Success: ${response['success']}');
+      print(' AuthRepository: User data present: ${response['user'] != null}');
 
       if (response['token'] != null) {
         await saveToken(response['token']);
         HttpService.setToken(response['token']);
-        print('📦 AuthRepository: Token saved and set');
+        print(' AuthRepository: Token saved and set');
       }
 
       if (response['user'] != null) {
         final user = response['user'];
         print(
-          '📦 AuthRepository: User data - Name: ${user['name']}, Email: ${user['email']}, Phone: ${user['phone']}',
+          ' AuthRepository: User data - Name: ${user['name']}, Email: ${user['email']}, Phone: ${user['phone']}',
         );
       }
 
-      print('✅ AuthRepository: Login completed successfully');
+      print(' AuthRepository: Login completed successfully');
       return response;
     } catch (e) {
-      print('❌ AuthRepository: Login error: $e');
+      print(' AuthRepository: Login error: $e');
       return {
         'success': false,
         'message': e.toString().replaceFirst('Exception: ', ''),
@@ -231,24 +223,24 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<UserEntity?> getCurrentUser() async {
     try {
-      print('📦 AuthRepository: Getting current user...');
+      print(' AuthRepository: Getting current user...');
       final token = getStoredToken();
       print(
-        '📦 AuthRepository: Token exists: ${token != null && token.isNotEmpty}',
+        ' AuthRepository: Token exists: ${token != null && token.isNotEmpty}',
       );
 
       if (token == null || token.isEmpty) {
-        print('📦 AuthRepository: No token available, returning null');
+        print(' AuthRepository: No token available, returning null');
         return null;
       }
 
       HttpService.setToken(token);
-      print('📦 AuthRepository: Calling remote data source...');
+      print(' AuthRepository: Calling remote data source...');
       final user = await _authRemoteDataSource.getCurrentUser();
-      print('📦 AuthRepository: User fetched successfully - ${user.name}');
+      print(' AuthRepository: User fetched successfully - ${user.name}');
       return user;
     } catch (e) {
-      print('❌ AuthRepository: Error getting current user: $e');
+      print(' AuthRepository: Error getting current user: $e');
       return null;
     }
   }

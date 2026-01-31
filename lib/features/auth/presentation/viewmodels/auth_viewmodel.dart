@@ -13,16 +13,15 @@ class AuthViewModel extends ChangeNotifier {
   final AuthRepository _repository;
 
   AuthViewModel(this._repository) {
-    // Load any cached user for instant UI responsiveness, then refresh from API if token exists
     _loadCachedUser();
   }
 
   Future<void> _loadCachedUser() async {
     try {
-      print('💾 AuthViewModel: Loading cached user...');
+      print(' AuthViewModel: Loading cached user...');
       final js = HiveService.sessionBox().get('user');
       print(
-        '💾 AuthViewModel: Cached data exists: ${js is String && js.isNotEmpty}',
+        ' AuthViewModel: Cached data exists: ${js is String && js.isNotEmpty}',
       );
 
       if (js is String && js.isNotEmpty) {
@@ -39,24 +38,23 @@ class AuthViewModel extends ChangeNotifier {
           isEmailVerified: m['isEmailVerified'] ?? false,
         );
         _loginIdentifierUsed = m['loginIdentifier']?.toString();
-        print('💾 AuthViewModel: Loaded cached user: ${_user?.name}');
-        print('💾 AuthViewModel: Email verified: ${_user?.isEmailVerified}');
+        print(' AuthViewModel: Loaded cached user: ${_user?.name}');
+        print(' AuthViewModel: Email verified: ${_user?.isEmailVerified}');
         notifyListeners();
       }
 
-      // If there's a stored token, set it in HttpService and refresh user data
       final token = _repository.getStoredToken();
       print(
-        '💾 AuthViewModel: Stored token exists: ${token != null && token.isNotEmpty}',
+        ' AuthViewModel: Stored token exists: ${token != null && token.isNotEmpty}',
       );
       if (token != null && token.isNotEmpty) {
-        print('💾 AuthViewModel: Setting token in HttpService...');
+        print(' AuthViewModel: Setting token in HttpService...');
         HttpService.setToken(token);
-        print('💾 AuthViewModel: Fetching fresh user data...');
+        print(' AuthViewModel: Fetching fresh user data...');
         await getCurrentUser();
       }
     } catch (e) {
-      print('❌ AuthViewModel: Error loading cached user: $e');
+      print(' AuthViewModel: Error loading cached user: $e');
     }
   }
 
@@ -75,7 +73,6 @@ class AuthViewModel extends ChangeNotifier {
     return _repository.getStoredToken();
   }
 
-  // Public method to access stored token (used by SplashScreen)
   String? getStoredToken() {
     return _repository.getStoredToken();
   }
@@ -91,8 +88,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('💾 AuthViewModel: Starting signup...');
-      print('💾 AuthViewModel: Email: $email, Name: $name');
+      print(' AuthViewModel: Starting signup...');
+      print(' AuthViewModel: Email: $email, Name: $name');
 
       final response = await _repository.signup(
         name: name,
@@ -101,20 +98,18 @@ class AuthViewModel extends ChangeNotifier {
         password: password,
       );
 
-      print('💾 AuthViewModel: Repository response received');
-      print('💾 AuthViewModel: Success: ${response['success']}');
+      print(' AuthViewModel: Repository response received');
+      print(' AuthViewModel: Success: ${response['success']}');
 
-      // If API returned an explicit error
       if (response['success'] == false) {
         _error = response['message'] ?? 'Signup failed';
-        print('❌ AuthViewModel: Signup failed - $_error');
+        print(' AuthViewModel: Signup failed - $_error');
         notifyListeners();
         return;
       }
 
-      print('✅ AuthViewModel: Signup successful');
+      print(' AuthViewModel: Signup successful');
 
-      // If the response contains user data, set it straight away
       if (response['user'] != null &&
           response['user'] is Map<String, dynamic>) {
         final u = response['user'];
@@ -129,17 +124,13 @@ class AuthViewModel extends ChangeNotifier {
               : null,
           isEmailVerified: u['isEmailVerified'] ?? false,
         );
-        print('💾 AuthViewModel: User entity created - ${_user!.name}');
+        print(' AuthViewModel: User entity created - ${_user!.name}');
       } else {
-        print(
-          '💾 AuthViewModel: No user in response, fetching current user...',
-        );
-        // Otherwise attempt to fetch the current user using saved token
+        print(' AuthViewModel: No user in response, fetching current user...');
         final fetched = await getCurrentUser();
         _user = fetched ?? _user;
       }
 
-      // Persist a lightweight copy of user data to session box for quick access
       try {
         if (_user != null) {
           _loginIdentifierUsed = email;
@@ -156,16 +147,16 @@ class AuthViewModel extends ChangeNotifier {
               'isEmailVerified': _user!.isEmailVerified,
             }),
           );
-          print('💾 AuthViewModel: User data cached to Hive');
+          print(' AuthViewModel: User data cached to Hive');
         }
       } catch (e) {
-        print('⚠️ AuthViewModel: Failed to cache user data: $e');
+        print(' AuthViewModel: Failed to cache user data: $e');
       }
 
       _error = null;
       notifyListeners();
     } catch (e) {
-      print('❌ AuthViewModel: Exception during signup: $e');
+      print(' AuthViewModel: Exception during signup: $e');
       _error = e.toString();
       notifyListeners();
       rethrow;
@@ -175,7 +166,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Uploads a new profile image file (with optional crop/compress), updates on backend atomically and updates local user
   Future<void> updateProfileImage(
     File file, {
     bool crop = true,
@@ -188,7 +178,6 @@ class AuthViewModel extends ChangeNotifier {
     try {
       File processed = file;
 
-      // Optional crop
       if (crop) {
         try {
           final cropped = await _cropImage(processed);
@@ -196,13 +185,11 @@ class AuthViewModel extends ChangeNotifier {
         } catch (_) {}
       }
 
-      // Optional compress
       try {
         final compressed = await _compressImage(processed, quality: quality);
         if (compressed != null) processed = compressed;
       } catch (_) {}
 
-      // Upload and update profile atomically on server
       final response = await _repository.uploadProfileImage(processed);
 
       if (response['success'] == true && response['user'] != null) {
@@ -219,7 +206,6 @@ class AuthViewModel extends ChangeNotifier {
           isEmailVerified: u['isEmailVerified'] ?? false,
         );
 
-        // Persist lightweight copy
         try {
           _loginIdentifierUsed = _loginIdentifierUsed ?? _user?.email;
           await HiveService.sessionBox().put(
@@ -252,10 +238,8 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Crop image using ImageCropper (returns File or null)
   Future<File?> _cropImage(File file) async {
     try {
-      // Keep crop call minimal to avoid platform-specific compile issues in tests
       final img = await ImageCropper().cropImage(sourcePath: file.path);
       if (img == null) return null;
       return File(img.path);
@@ -264,7 +248,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // Compress image using flutter_image_compress (returns File or null)
   Future<File?> _compressImage(File file, {int quality = 85}) async {
     try {
       final targetPath = '${file.parent.path}/c_${file.uri.pathSegments.last}';
@@ -276,11 +259,9 @@ class AuthViewModel extends ChangeNotifier {
 
       if (result == null) return null;
 
-      // Normalize to File using path property (works for File or XFile)
       try {
         return File(result.path);
       } catch (_) {
-        // If it doesn't expose .path or conversion fails
         return null;
       }
     } catch (_) {
@@ -294,21 +275,21 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('💾 AuthViewModel: Starting login...');
-      print('💾 AuthViewModel: Email: $email');
+      print(' AuthViewModel: Starting login...');
+      print(' AuthViewModel: Email: $email');
 
       final response = await _repository.login(
         email: email,
         password: password,
       );
 
-      print('💾 AuthViewModel: Repository response received');
-      print('💾 AuthViewModel: Success: ${response['success']}');
+      print(' AuthViewModel: Repository response received');
+      print(' AuthViewModel: Success: ${response['success']}');
 
       // If API returned an explicit error
       if (response['success'] == false) {
         _error = response['message'] ?? 'Login failed';
-        print('❌ AuthViewModel: Login failed - $_error');
+        print(' AuthViewModel: Login failed - $_error');
         notifyListeners();
         return;
       }
@@ -328,20 +309,17 @@ class AuthViewModel extends ChangeNotifier {
               : null,
           isEmailVerified: u['isEmailVerified'] ?? false,
         );
-        print('💾 AuthViewModel: User entity created from response');
+        print(' AuthViewModel: User entity created from response');
         print(
-          '💾 AuthViewModel: Name: ${_user!.name}, Email: ${_user!.email}, Phone: ${_user!.phone}',
+          ' AuthViewModel: Name: ${_user!.name}, Email: ${_user!.email}, Phone: ${_user!.phone}',
         );
       } else {
-        print(
-          '💾 AuthViewModel: No user in response, fetching current user...',
-        );
+        print(' AuthViewModel: No user in response, fetching current user...');
         // Otherwise fetch user from API using saved token
         final fetched = await getCurrentUser();
         _user = fetched ?? _user;
       }
 
-      // Persist a lightweight copy of user data to session box for quick access
       try {
         if (_user != null) {
           _loginIdentifierUsed = email;
@@ -358,16 +336,16 @@ class AuthViewModel extends ChangeNotifier {
               'isEmailVerified': _user!.isEmailVerified,
             }),
           );
-          print('💾 AuthViewModel: User data cached to Hive');
+          print(' AuthViewModel: User data cached to Hive');
           print(
-            '💾 AuthViewModel: Cached data: Name=${_user!.name}, Email=${_user!.email}',
+            ' AuthViewModel: Cached data: Name=${_user!.name}, Email=${_user!.email}',
           );
         }
       } catch (e) {
-        print('⚠️ AuthViewModel: Failed to cache user data: $e');
+        print(' AuthViewModel: Failed to cache user data: $e');
       }
 
-      print('✅ AuthViewModel: Login completed successfully');
+      print(' AuthViewModel: Login completed successfully');
       _error = null;
       notifyListeners();
     } catch (e) {
@@ -382,20 +360,20 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<UserEntity?> getCurrentUser() async {
     try {
-      print('🔐 AuthViewModel: Attempting to get current user...');
+      print(' AuthViewModel: Attempting to get current user...');
       final token = _getStoredToken();
       print(
-        '🔐 AuthViewModel: Token exists: ${token != null && token.isNotEmpty}',
+        ' AuthViewModel: Token exists: ${token != null && token.isNotEmpty}',
       );
 
       final user = await _repository.getCurrentUser();
       _user = user;
-      print('🔐 AuthViewModel: User fetched: ${user?.name ?? "null"}');
+      print(' AuthViewModel: User fetched: ${user?.name ?? "null"}');
 
       notifyListeners();
       return _user;
     } catch (e) {
-      print('❌ AuthViewModel: Error getting current user: $e');
+      print(' AuthViewModel: Error getting current user: $e');
       _error = e.toString();
       notifyListeners();
       return null;

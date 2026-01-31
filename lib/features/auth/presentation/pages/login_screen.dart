@@ -38,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text = args['prefillEmail'].toString();
         }
         if (args['prefillPassword'] != null) {
-          // Prefill password only when passed explicitly from signup flow
           _passwordController.text = args['prefillPassword'].toString();
         }
         if (args['message'] != null) {
@@ -66,8 +65,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    print('📱 LoginScreen: Starting login process...');
-    print('📱 LoginScreen: Email: $email');
+    print(' LoginScreen: Starting login process...');
+    print(' LoginScreen: Email: $email');
 
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
 
@@ -76,30 +75,29 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (authVm.error == null) {
-        print('✅ LoginScreen: Login successful');
+        print(' LoginScreen: Login successful');
         print(
-          '📱 LoginScreen: User data - Name: ${authVm.user?.name}, Email: ${authVm.user?.email}',
+          ' LoginScreen: User data - Name: ${authVm.user?.name}, Email: ${authVm.user?.email}',
         );
 
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Login successful')));
 
-        print('📱 LoginScreen: Navigating to dashboard...');
-        // Navigate to dashboard with home tab (index 0)
+        print(' LoginScreen: Navigating to dashboard...');
         Navigator.pushReplacementNamed(
           context,
           DashboardScreen.routeName,
           arguments: {'initialIndex': 0}, // Home tab
         );
       } else {
-        print('❌ LoginScreen: Login failed - ${authVm.error}');
+        print(' LoginScreen: Login failed - ${authVm.error}');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(authVm.error!)));
       }
     } catch (e) {
-      print('❌ LoginScreen: Exception during login: $e');
+      print(' LoginScreen: Exception during login: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

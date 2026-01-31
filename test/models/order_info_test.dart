@@ -119,7 +119,6 @@ void main() {
       );
 
       expect(order.id, equals("PN-2007"));
-      // Try to verify immutability by checking fields don't change
       final id = order.id;
       expect(order.id, equals(id));
     });

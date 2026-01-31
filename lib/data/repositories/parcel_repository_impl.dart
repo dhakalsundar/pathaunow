@@ -46,7 +46,6 @@ class ParcelRepository implements IParcelRepository {
 
   @override
   Future<ParcelEntity> getParcelById(String parcelId) async {
-    // Implementation would fetch by ID from API
     throw UnimplementedError();
   }
 
@@ -88,7 +87,6 @@ class ParcelRepository implements IParcelRepository {
 
   @override
   Future<void> deleteParcel(String parcelId) async {
-    // Implementation would delete parcel from API
     throw UnimplementedError();
   }
 }

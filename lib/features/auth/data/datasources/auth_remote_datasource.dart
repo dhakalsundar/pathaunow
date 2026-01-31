@@ -25,7 +25,6 @@ abstract class AuthRemoteDataSource {
     String? profileImage,
   });
 
-  /// Uploads a profile image via multipart and updates user's profile atomically.
   Future<Map<String, dynamic>> uploadProfileImage(File imageFile);
 
   Future<void> logout();
@@ -40,8 +39,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      print('🌐 AuthRemoteDataSource: Starting signup...');
-      print('🌐 AuthRemoteDataSource: Email: $email, Phone: $phone');
+      print(' AuthRemoteDataSource: Starting signup...');
+      print(' AuthRemoteDataSource: Email: $email, Phone: $phone');
 
       final response = await HttpService.post(
         '/auth/signup',
@@ -53,18 +52,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         },
       );
 
-      print('🌐 AuthRemoteDataSource: Signup response received');
-      print('🌐 AuthRemoteDataSource: Success: ${response['success']}');
+      print(' AuthRemoteDataSource: Signup response received');
+      print('AuthRemoteDataSource: Success: ${response['success']}');
 
       if (response['success'] != true) {
-        print('❌ AuthRemoteDataSource: Signup failed - ${response['message']}');
+        print(' AuthRemoteDataSource: Signup failed - ${response['message']}');
         throw Exception(response['message'] ?? 'Signup failed');
       }
 
-      print('✅ AuthRemoteDataSource: Signup successful');
+      print(' AuthRemoteDataSource: Signup successful');
       return response;
     } catch (e) {
-      print('❌ AuthRemoteDataSource: Exception during signup: $e');
+      print(' AuthRemoteDataSource: Exception during signup: $e');
       rethrow;
     }
   }
@@ -72,23 +71,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<Map<String, dynamic>> uploadProfileImage(File imageFile) async {
     try {
-      print('🌐 AuthRemoteDataSource: Starting profile image upload...');
+      print(' AuthRemoteDataSource: Starting profile image upload...');
 
-      // Use HttpService directly for consistent Authorization header handling
       final response = await HttpService.multipartPost(
         '/auth/profile/upload',
         file: imageFile,
       );
 
-      print('🌐 AuthRemoteDataSource: Upload response received');
-      print('🌐 AuthRemoteDataSource: Success: ${response['success']}');
+      print(' AuthRemoteDataSource: Upload response received');
+      print(' AuthRemoteDataSource: Success: ${response['success']}');
 
       if (response['success'] != true) {
         throw Exception(response['message'] ?? 'Upload failed');
       }
       return response;
     } catch (e) {
-      print('❌ AuthRemoteDataSource: Upload failed: $e');
+      print(' AuthRemoteDataSource: Upload failed: $e');
       rethrow;
     }
   }
@@ -98,40 +96,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    print('🌐 AuthRemoteDataSource: Starting login...');
-    print('🌐 AuthRemoteDataSource: Email: $email');
+    print(' AuthRemoteDataSource: Starting login...');
+    print(' AuthRemoteDataSource: Email: $email');
 
     final response = await HttpService.post(
       '/auth/login',
       body: {'email': email, 'password': password},
     );
 
-    print('🌐 AuthRemoteDataSource: Login response received');
-    print('🌐 AuthRemoteDataSource: Success: ${response['success']}');
+    print(' AuthRemoteDataSource: Login response received');
+    print(' AuthRemoteDataSource: Success: ${response['success']}');
 
     if (response['success'] != true) {
-      print('❌ AuthRemoteDataSource: Login failed - ${response['message']}');
+      print(' AuthRemoteDataSource: Login failed - ${response['message']}');
       throw Exception(response['message'] ?? 'Login failed');
     }
 
     if (response['user'] != null) {
       final user = response['user'];
       print(
-        '🌐 AuthRemoteDataSource: User data received - Name: ${user['name']}, Email: ${user['email']}',
+        ' AuthRemoteDataSource: User data received - Name: ${user['name']}, Email: ${user['email']}',
       );
     }
 
-    print('✅ AuthRemoteDataSource: Login successful');
+    print(' AuthRemoteDataSource: Login successful');
     return response;
   }
 
   @override
   Future<UserEntity> getCurrentUser() async {
-    print('🌐 AuthRemoteDataSource: Fetching current user from API...');
+    print(' AuthRemoteDataSource: Fetching current user from API...');
     final response = await HttpService.get('/auth/me');
 
     print(
-      '🌐 AuthRemoteDataSource: Response received - success: ${response['success']}',
+      ' AuthRemoteDataSource: Response received - success: ${response['success']}',
     );
 
     if (response['success'] != true) {
@@ -140,7 +138,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final userData = response['user'];
     print(
-      '🌐 AuthRemoteDataSource: User data - name: ${userData['name']}, email: ${userData['email']}',
+      ' AuthRemoteDataSource: User data - name: ${userData['name']}, email: ${userData['email']}',
     );
 
     return UserEntity(

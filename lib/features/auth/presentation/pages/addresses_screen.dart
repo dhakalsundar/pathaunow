@@ -48,7 +48,6 @@ class _AddressesScreenState extends State<AddressesScreen> {
                       backgroundColor: const Color(0xFFF57C00),
                     ),
                     onPressed: () {
-                      // Show simple add address dialog
                       showDialog(
                         context: context,
                         builder: (ctx) {

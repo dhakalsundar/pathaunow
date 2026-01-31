@@ -26,7 +26,6 @@ class HiveService {
   static Box<String> sessionBox() => Hive.box<String>(sessionBoxName);
   static Box<Parcel> parcelsBox() => Hive.box<Parcel>(parcelsBoxName);
 
-  // Token management
   static Future<void> saveToken(String token) async {
     final box = sessionBox();
     await box.put('auth_token', token);

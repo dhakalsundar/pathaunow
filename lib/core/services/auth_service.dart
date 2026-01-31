@@ -24,29 +24,15 @@ class AuthResponse {
 }
 
 class AuthService {
-  /// Get base URL based on platform and target
   static String get baseUrl {
-    // For web (Chrome, Edge, Firefox)
     if (kIsWeb) {
       return 'http://localhost:3000/api/auth';
     }
 
-    // For Android/iOS physical devices (same WiFi)
-    // CHANGE THIS to your computer's IP address if running on physical device
-    // Find with: ipconfig (Windows) or ifconfig (Mac/Linux)
-    // Example: 'http://192.168.1.100:3000/api/auth'
     if (Platform.isAndroid || Platform.isIOS) {
-      // Option 1: Physical Device on same WiFi (UPDATE THIS IP)
       return 'http://localhost:3000/api';
-
-      // Option 2: Uncomment for Android Emulator
-      // return 'http://10.0.2.2:3000/api/auth';
-
-      // Option 3: Uncomment for iOS Simulator
-      // return 'http://localhost:3000/api/auth';
     }
 
-    // Fallback
     return 'http://localhost:3000/api';
   }
 
@@ -77,7 +63,6 @@ class AuthService {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final authResponse = AuthResponse.fromJson(data);
 
-        // Save user to Hive
         if (authResponse.user != null) {
           final hiveUser = User(
             name: authResponse.user!['name'] ?? name,
@@ -123,7 +108,6 @@ class AuthService {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final authResponse = AuthResponse.fromJson(data);
 
-        // Save user to Hive
         if (authResponse.user != null) {
           final hiveUser = User(
             name: authResponse.user!['name'] ?? '',

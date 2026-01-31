@@ -16,11 +16,8 @@ class _MapScreenState extends State<MapScreen> {
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
 
-  // Example coordinates; in real use these should come from parcel data
-  final LatLng _origin = const LatLng(27.7172, 85.3240); // Kathmandu
+  final LatLng _origin = const LatLng(27.7172, 85.3240);
   LatLng? _destination = const LatLng(27.6720, 85.3219);
-
-  // API key is read from .env (GOOGLE_MAPS_API_KEY). Create .env at project root.
 
   @override
   void initState() {
@@ -112,7 +109,6 @@ class _MapScreenState extends State<MapScreen> {
               _controller.complete(controller);
             },
             onLongPress: (pos) {
-              // Toggle setting destination on long press
               setState(() {
                 _destination = pos;
                 _markers.removeWhere((m) => m.markerId.value == 'destination');

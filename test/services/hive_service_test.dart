@@ -4,7 +4,6 @@ import 'package:pathau_now/core/services/hive/hive_service.dart';
 void main() {
   group('HiveService Unit Tests', () {
     test('HiveService has parcelsBox method', () {
-      // Should have method
       expect(HiveService.parcelsBox, isA<Function>());
     });
 

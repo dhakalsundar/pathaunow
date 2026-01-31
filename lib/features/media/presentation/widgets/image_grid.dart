@@ -8,7 +8,6 @@ class ImageGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (images.isEmpty) {
-      // Show a sample image from Picsum so UI isn't empty and user can see output
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

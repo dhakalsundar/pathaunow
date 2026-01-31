@@ -70,9 +70,7 @@ class PathauNowApp extends StatelessWidget {
                 }
                 return DashboardScreen(initialIndex: initialIndex);
               },
-              // Addresses screen
               '/addresses': (_) => const AddressesScreen(),
-              // Account details
               AccountDetailsScreen.routeName: (_) =>
                   const AccountDetailsScreen(),
               MediaPage.routeName: (_) => const MediaPage(),
@@ -88,10 +86,8 @@ class PathauNowApp extends StatelessWidget {
               MapScreen.routeName: (_) => const MapScreen(),
             },
             builder: (context, child) {
-              // Ensure responsive design for all screen sizes
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
-                  // Enable proper text scaling for tablet/desktop
                   textScaler: TextScaler.linear(
                     MediaQuery.of(context).textScaleFactor > 1.1
                         ? 1.1

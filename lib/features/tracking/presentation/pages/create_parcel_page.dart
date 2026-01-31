@@ -65,7 +65,6 @@ class _CreateParcelPageState extends State<CreateParcelPage> {
         const SnackBar(content: Text('Parcel created successfully')),
       );
 
-      // Navigate to tracking detail for the newly created parcel
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => TrackingDetailPage(parcel: created)),

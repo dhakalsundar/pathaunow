@@ -76,7 +76,6 @@ void main() {
     ) async {
       await tester.pumpWidget(createWidgetUnderTest());
 
-      // Should show first 3 orders
       expect(find.text('PN-2007'), findsWidgets);
       expect(find.text('PN-1001'), findsWidgets);
       expect(find.text('PN-8888'), findsWidgets);

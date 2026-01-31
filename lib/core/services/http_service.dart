@@ -6,20 +6,18 @@ import 'dart:io';
 import 'package:pathau_now/config/app_config.dart';
 
 class HttpService {
-  /// Uses centralized configuration from AppConfig
-  /// Automatically handles platform-specific URLs (Android emulator, iOS, web, etc.)
   static String get baseUrl => AppConfig.apiBaseUrl;
 
   static String? _token;
 
   static void setToken(String token) {
     _token = token;
-    debugPrint('🔐 HttpService: Token set');
+    debugPrint(' HttpService: Token set');
   }
 
   static void clearToken() {
     _token = null;
-    debugPrint('🔐 HttpService: Token cleared');
+    debugPrint(' HttpService: Token cleared');
   }
 
   static String? getToken() => _token;
@@ -35,7 +33,7 @@ class HttpService {
   static Future<dynamic> get(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
-      debugPrint('📡 GET: $url');
+      debugPrint(' GET: $url');
 
       final response = await http
           .get(url, headers: _getHeaders())
@@ -43,7 +41,7 @@ class HttpService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ HTTP GET Error: $e');
+      debugPrint(' HTTP GET Error: $e');
       throw Exception('Network error: $e');
     }
   }
@@ -54,8 +52,8 @@ class HttpService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
-      debugPrint('📡 POST: $url');
-      debugPrint('📦 Body: $body');
+      debugPrint(' POST: $url');
+      debugPrint(' Body: $body');
 
       final response = await http
           .post(url, headers: _getHeaders(), body: jsonEncode(body))
@@ -63,7 +61,7 @@ class HttpService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ HTTP POST Error: $e');
+      debugPrint(' HTTP POST Error: $e');
       throw Exception('Network error: $e');
     }
   }
@@ -74,7 +72,7 @@ class HttpService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
-      debugPrint('📡 PUT: $url');
+      debugPrint(' PUT: $url');
 
       final response = await http
           .put(url, headers: _getHeaders(), body: jsonEncode(body))
@@ -82,7 +80,7 @@ class HttpService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ HTTP PUT Error: $e');
+      debugPrint(' HTTP PUT Error: $e');
       throw Exception('Network error: $e');
     }
   }
@@ -90,7 +88,7 @@ class HttpService {
   static Future<dynamic> delete(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
-      debugPrint('📡 DELETE: $url');
+      debugPrint(' DELETE: $url');
 
       final response = await http
           .delete(url, headers: _getHeaders())
@@ -98,7 +96,7 @@ class HttpService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ HTTP DELETE Error: $e');
+      debugPrint(' HTTP DELETE Error: $e');
       throw Exception('Network error: $e');
     }
   }
@@ -110,16 +108,15 @@ class HttpService {
   }) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
-      debugPrint('📡 MULTIPART POST: $url');
-      debugPrint('📦 File: ${file.path}');
-      debugPrint('🔐 Token set: ${_token != null ? '✅ Yes' : '❌ No'}');
+      debugPrint(' MULTIPART POST: $url');
+      debugPrint(' File: ${file.path}');
+      debugPrint(' Token set: ${_token != null ? ' Yes' : ' No'}');
       if (_token != null) {
-        debugPrint('🔐 Token: ${_token!.substring(0, 20)}...');
+        debugPrint(' Token: ${_token!.substring(0, 20)}...');
       }
 
       final request = http.MultipartRequest('POST', url);
 
-      // Add Authorization header
       if (_token != null) {
         request.headers['Authorization'] = 'Bearer $_token';
         debugPrint('📋 Headers: Authorization header added');
@@ -127,7 +124,6 @@ class HttpService {
         debugPrint('⚠️ WARNING: No token available for upload!');
       }
 
-      // Detect image MIME type from file extension
       final fileExtension = file.path.toLowerCase().split('.').last;
       final mimeType = _getMimeType(fileExtension);
       debugPrint('📸 File extension: $fileExtension, MIME type: $mimeType');
@@ -147,7 +143,7 @@ class HttpService {
 
       return _handleResponse(response);
     } catch (e) {
-      debugPrint('❌ HTTP MULTIPART POST Error: $e');
+      debugPrint(' HTTP MULTIPART POST Error: $e');
       throw Exception('Network error: $e');
     }
   }
@@ -164,22 +160,21 @@ class HttpService {
       case 'webp':
         return MediaType('image', 'webp');
       default:
-        return MediaType('image', 'jpeg'); // Default to JPEG
+        return MediaType('image', 'jpeg');
     }
   }
 
   static dynamic _handleResponse(http.Response response) {
-    debugPrint('📥 Response Status: ${response.statusCode}');
+    debugPrint(' Response Status: ${response.statusCode}');
     final bodyPreview = response.body.length > 200
         ? response.body.substring(0, 200)
         : response.body;
-    debugPrint('📥 Response Body: $bodyPreview...');
+    debugPrint(' Response Body: $bodyPreview...');
 
-    // Check if response is HTML (error page)
     if (response.body.trim().startsWith('<!DOCTYPE') ||
         response.body.trim().startsWith('<html')) {
-      debugPrint('❌ HTML Error Response detected');
-      debugPrint('📥 Full HTML: ${response.body}');
+      debugPrint(' HTML Error Response detected');
+      debugPrint(' Full HTML: ${response.body}');
       throw Exception(
         'Server error: ${response.statusCode} - Backend returned HTML error',
       );
@@ -192,7 +187,7 @@ class HttpService {
         return jsonResponse;
       } else if (response.statusCode == 401) {
         _token = null;
-        debugPrint('🔒 Unauthorized - Token cleared');
+        debugPrint(' Unauthorized - Token cleared');
         throw Exception(
           'Unauthorized: ${jsonResponse['message'] ?? 'Please login again'}',
         );
@@ -205,7 +200,7 @@ class HttpService {
       }
     } catch (e) {
       if (e is Exception) rethrow;
-      debugPrint('❌ JSON Parse Error: $e');
+      debugPrint(' JSON Parse Error: $e');
       throw Exception('Failed to parse response: ${response.body}');
     }
   }

@@ -41,13 +41,13 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    print('📱 SignupScreen: Starting signup process...');
-    print('📱 SignupScreen: Name: $name, Email: $email, Phone: $phone');
+    print(' SignupScreen: Starting signup process...');
+    print(' SignupScreen: Name: $name, Email: $email, Phone: $phone');
 
     final authVm = Provider.of<AuthViewModel>(context, listen: false);
 
     try {
-      print('📱 SignupScreen: Calling AuthViewModel.signup()...');
+      print(' SignupScreen: Calling AuthViewModel.signup()...');
       await authVm.signup(
         name: name,
         email: email,
@@ -57,14 +57,13 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      print('📱 SignupScreen: Signup completed. Error: ${authVm.error}');
+      print(' SignupScreen: Signup completed. Error: ${authVm.error}');
 
       if (authVm.error == null) {
-        print('✅ SignupScreen: Signup successful, redirecting to login...');
+        print(' SignupScreen: Signup successful, redirecting to login...');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account created — please login')),
         );
-        // After signup, redirect user to login so they authenticate — prefill email & password
         Navigator.pushReplacementNamed(
           context,
           LoginScreen.routeName,
@@ -75,13 +74,13 @@ class _SignupScreenState extends State<SignupScreen> {
           },
         );
       } else {
-        print('❌ SignupScreen: Signup failed with error: ${authVm.error}');
+        print(' SignupScreen: Signup failed with error: ${authVm.error}');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: ${authVm.error!}')));
       }
     } catch (e) {
-      print('❌ SignupScreen: Exception caught: $e');
+      print(' SignupScreen: Exception caught: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

@@ -30,7 +30,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Fetch user data when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authVm = Provider.of<AuthViewModel>(context, listen: false);
       await authVm.getCurrentUser();
@@ -63,13 +62,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (selected != null && selected.isNotEmpty) {
       try {
-        // update app locale via LocaleService so UI refreshes
         await Provider.of<LocaleService>(
           context,
           listen: false,
         ).setLocale(selected);
         if (!mounted) return;
-        setState(() {}); // refresh UI where language is shown
+        setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context).t('language_set')),
@@ -150,7 +148,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
                 if (picked == null) return;
                 final file = File(picked.path);
-                // Show a blocking progress dialog while uploading
                 if (!mounted) return;
                 showDialog(
                   context: context,
@@ -164,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context, rootNavigator: true).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ Profile photo updated'),
+                      content: Text(' Profile photo updated'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -174,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context, rootNavigator: true).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('❌ Update failed: $e'),
+                      content: Text(' Update failed: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -192,7 +189,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
                 if (picked == null) return;
                 final file = File(picked.path);
-                // Show a blocking progress dialog while uploading
                 if (!mounted) return;
                 showDialog(
                   context: context,
@@ -206,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context, rootNavigator: true).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('✅ Profile photo updated'),
+                      content: Text(' Profile photo updated'),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -216,7 +212,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.of(context, rootNavigator: true).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('❌ Update failed: $e'),
+                      content: Text(' Update failed: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -244,9 +240,9 @@ class _ProfilePageState extends State<ProfilePage> {
       body: RefreshIndicator(
         onRefresh: () async {
           final authVm = Provider.of<AuthViewModel>(context, listen: false);
-          print('🔄 Pull-to-refresh: Fetching user from API...');
+          print(' Pull-to-refresh: Fetching user from API...');
           await authVm.getCurrentUser();
-          print('🔄 Pull-to-refresh: Done. User = ${authVm.user?.name}');
+          print(' Pull-to-refresh: Done. User = ${authVm.user?.name}');
         },
         child: ListView(
           padding: EdgeInsets.symmetric(
@@ -258,17 +254,14 @@ class _ProfilePageState extends State<ProfilePage> {
               builder: (context, authVm, _) {
                 final user = authVm.user;
 
-                // Debug logging
-                print('🖼️ ProfileView: Building profile view');
-                print('🖼️ ProfileView: User is null: ${user == null}');
+                print(' ProfileView: Building profile view');
+                print(' ProfileView: User is null: ${user == null}');
                 if (user != null) {
-                  print('🖼️ ProfileView: User name: ${user.name}');
-                  print('🖼️ ProfileView: User email: ${user.email}');
-                  print('🖼️ ProfileView: User phone: ${user.phone}');
+                  print(' ProfileView: User name: ${user.name}');
+                  print(' ProfileView: User email: ${user.email}');
+                  print(' ProfileView: User phone: ${user.phone}');
                 }
-                print(
-                  '🖼️ ProfileView: AuthVM isLoggedIn: ${authVm.isLoggedIn}',
-                );
+                print(' ProfileView: AuthVM isLoggedIn: ${authVm.isLoggedIn}');
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -639,10 +632,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     const SizedBox(height: 16),
 
-                    // Debug Info Card (remove this after testing)
                     const SizedBox(height: 16),
 
-                    // Account Statistics (if user is logged in)
                     if (user != null)
                       _CardShell(
                         child: Column(

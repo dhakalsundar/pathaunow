@@ -59,29 +59,15 @@ class ImageModel {
 }
 
 class ImageService {
-  /// Get base URL based on platform and target (web, mobile, emulator)
   static String get baseUrl {
-    // For web (Chrome, Edge, Firefox)
     if (kIsWeb) {
       return 'http://localhost:3000/api/media';
     }
 
-    // For Android/iOS physical devices (same WiFi)
-    // CHANGE THIS to your computer's IP address if running on physical device
-    // Find with: ipconfig (Windows) or ifconfig (Mac/Linux)
-    // Example: 'http://192.168.1.100:3000/api/media'
     if (Platform.isAndroid || Platform.isIOS) {
-      // Option 1: Physical Device on same WiFi (UPDATE THIS IP)
       return 'http://localhost:3000/api';
-
-      // Option 2: Uncomment for Android Emulator
-      // return 'http://10.0.2.2:3000/api/media';
-
-      // Option 3: Uncomment for iOS Simulator
-      // return 'http://localhost:3000/api/media';
     }
 
-    // Fallback
     return 'http://localhost:3000/api';
   }
 
@@ -103,7 +89,6 @@ class ImageService {
     return headers;
   }
 
-  /// Upload an image file to the server
   static Future<ImageUploadResponse> uploadImage(File imageFile) async {
     try {
       if (!await imageFile.exists()) {
@@ -139,7 +124,6 @@ class ImageService {
     }
   }
 
-  /// Upload image from image picker
   static Future<ImageUploadResponse> uploadImageFromPicker() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -164,7 +148,6 @@ class ImageService {
     }
   }
 
-  /// Upload image from camera
   static Future<ImageUploadResponse> uploadImageFromCamera() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -189,7 +172,6 @@ class ImageService {
     }
   }
 
-  /// Get list of all images from the server
   static Future<List<ImageModel>> getImages() async {
     try {
       final uri = Uri.parse('$baseUrl/');
@@ -209,7 +191,6 @@ class ImageService {
     }
   }
 
-  /// Download image from URL
   static Future<File> downloadImage(String imageUrl, String fileName) async {
     try {
       final response = await http.get(Uri.parse(imageUrl));
@@ -227,7 +208,6 @@ class ImageService {
     }
   }
 
-  /// Delete image from local cache (for future use)
   static Future<void> deleteLocalImage(File imageFile) async {
     try {
       if (await imageFile.exists()) {

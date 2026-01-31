@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Responsive Helper - Provides utilities for responsive design
-/// Supports mobile (< 600dp), tablet (600-900dp), and desktop (> 900dp)
 class ResponsiveHelper {
-  /// Device size classification
   static DeviceType getDeviceType(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
@@ -16,33 +13,27 @@ class ResponsiveHelper {
     }
   }
 
-  /// Check if device is mobile
   static bool isMobile(BuildContext context) {
     return MediaQuery.of(context).size.width < 600;
   }
 
-  /// Check if device is tablet
   static bool isTablet(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return width >= 600 && width < 900;
   }
 
-  /// Check if device is desktop
   static bool isDesktop(BuildContext context) {
     return MediaQuery.of(context).size.width >= 900;
   }
 
-  /// Get screen width
   static double screenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
 
-  /// Get screen height
   static double screenHeight(BuildContext context) {
     return MediaQuery.of(context).size.height;
   }
 
-  /// Get responsive padding
   static EdgeInsets getResponsivePadding(BuildContext context) {
     final isTablet = ResponsiveHelper.isTablet(context);
     final isMobile = ResponsiveHelper.isMobile(context);
@@ -56,7 +47,6 @@ class ResponsiveHelper {
     }
   }
 
-  /// Get responsive font size
   static double getResponsiveFontSize(
     BuildContext context, {
     required double mobileSize,
@@ -72,7 +62,6 @@ class ResponsiveHelper {
     };
   }
 
-  /// Get responsive spacing
   static double getResponsiveSpacing(BuildContext context) {
     final width = screenWidth(context);
 
@@ -85,7 +74,6 @@ class ResponsiveHelper {
     }
   }
 
-  /// Get grid column count
   static int getGridColumns(BuildContext context) {
     final deviceType = getDeviceType(context);
 
@@ -96,7 +84,6 @@ class ResponsiveHelper {
     };
   }
 
-  /// Get max content width
   static double getMaxContentWidth(BuildContext context) {
     final deviceType = getDeviceType(context);
 
@@ -107,17 +94,14 @@ class ResponsiveHelper {
     };
   }
 
-  /// Get bottom navigation height (mobile only)
   static double getBottomNavHeight(BuildContext context) {
     return isMobile(context) ? 70.0 : 0.0;
   }
 
-  /// Get app bar height
   static double getAppBarHeight(BuildContext context) {
     return kToolbarHeight;
   }
 
-  /// Get responsive icon size
   static double getResponsiveIconSize(BuildContext context) {
     final deviceType = getDeviceType(context);
 
@@ -129,10 +113,8 @@ class ResponsiveHelper {
   }
 }
 
-/// Device type enumeration
 enum DeviceType { mobile, tablet, desktop }
 
-/// Responsive widget wrapper
 class ResponsiveWidget extends StatelessWidget {
   final Widget mobile;
   final Widget? tablet;
@@ -157,7 +139,6 @@ class ResponsiveWidget extends StatelessWidget {
   }
 }
 
-/// Responsive layout builder
 class ResponsiveLayoutBuilder extends StatelessWidget {
   final WidgetBuilder mobileBuilder;
   final WidgetBuilder? tabletBuilder;

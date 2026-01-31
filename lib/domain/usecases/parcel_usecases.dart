@@ -1,8 +1,6 @@
 import 'package:pathau_now/domain/entities/parcel_entity.dart';
 import 'package:pathau_now/domain/repositories/repository_interfaces.dart';
 
-/// Use Cases - Orchestrate domain logic
-
 class CreateParcelUseCase {
   final IParcelRepository repository;
 

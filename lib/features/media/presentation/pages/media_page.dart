@@ -13,7 +13,7 @@ import '../widgets/image_grid.dart';
 
 class MediaPage extends StatefulWidget {
   static const routeName = "/media";
-  final MediaViewModel? injectedVm; // for widget tests
+  final MediaViewModel? injectedVm;
 
   const MediaPage({super.key, this.injectedVm});
 
@@ -70,7 +70,6 @@ class _MediaPageState extends State<MediaPage> {
   }
 
   Future<void> _uploadSampleImage() async {
-    // Download a sample image from Picsum and upload it
     const sampleUrl = 'https://picsum.photos/800';
 
     try {

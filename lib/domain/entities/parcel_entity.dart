@@ -1,4 +1,3 @@
-/// Domain Entities - Pure business logic
 library;
 
 import 'dart:math';

@@ -24,7 +24,6 @@ void main() {
       mockParcelViewModel = MockParcelViewModel();
       mockLocaleService = MockLocaleService();
 
-      // Setup mock behaviors
       when(
         () => mockAuthViewModel.getCurrentUser(),
       ).thenAnswer((_) async => null);

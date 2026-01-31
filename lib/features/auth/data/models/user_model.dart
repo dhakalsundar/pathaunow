@@ -13,10 +13,8 @@ class UserModel extends UserEntity {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // Support multiple response shapes (direct or nested)
     final map = Map<String, dynamic>.from(json);
 
-    // sometimes API wraps user inside 'user' or 'data.user'
     if (map.containsKey('user') && map['user'] is Map) {
       map.addAll(Map<String, dynamic>.from(map['user']));
     }

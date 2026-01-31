@@ -121,7 +121,6 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      // Test passes if no exception thrown
       expect(true, isTrue);
     });
 
@@ -131,7 +130,6 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Timeline steps should be visible
       expect(find.text('Picked up from sender'), findsWidgets);
     });
 
@@ -163,14 +161,12 @@ void main() {
         ),
       );
 
-      // Trigger search if search button exists
       final searchButtons = find.byIcon(Icons.search);
       if (searchButtons.evaluate().isNotEmpty) {
         await tester.tap(searchButtons.first);
         await tester.pumpAndSettle();
       }
 
-      // Test passes
       expect(true, isTrue);
     });
   });

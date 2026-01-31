@@ -23,7 +23,6 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Should display profile related widgets
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
@@ -32,7 +31,6 @@ void main() {
     ) async {
       await tester.pumpWidget(createWidgetUnderTest());
 
-      // Look for back button (typically in AppBar)
       final backButtons = find.byIcon(Icons.arrow_back);
       final closeButtons = find.byIcon(Icons.close);
 
@@ -121,14 +119,12 @@ void main() {
         ),
       );
 
-      // Try to trigger back navigation
       final backButtons = find.byIcon(Icons.arrow_back);
       if (backButtons.evaluate().isNotEmpty) {
         await tester.tap(backButtons.first);
         await tester.pumpAndSettle();
         expect(callbackCalled, isTrue);
       } else {
-        // If no back button, test still passes
         expect(true, isTrue);
       }
     });

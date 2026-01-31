@@ -21,32 +21,29 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToNextScreen() async {
-    // Wait for 2 seconds for splash screen to show
     await Future.delayed(const Duration(seconds: 2));
 
     try {
-      // Check if user has a stored token
       final authVm = Provider.of<AuthViewModel>(context, listen: false);
       final storedToken = authVm.getStoredToken();
 
-      print('🔍 SplashScreen: Checking for saved session...');
+      print(' SplashScreen: Checking for saved session...');
       print(
-        '🔍 SplashScreen: Stored token exists: ${storedToken != null && storedToken.isNotEmpty}',
+        ' SplashScreen: Stored token exists: ${storedToken != null && storedToken.isNotEmpty}',
       );
-      print('🔍 SplashScreen: User logged in: ${authVm.isLoggedIn}');
+      print(' SplashScreen: User logged in: ${authVm.isLoggedIn}');
 
       if (!mounted) return;
 
-      // If user is logged in, go to Dashboard directly
       if (authVm.isLoggedIn && storedToken != null && storedToken.isNotEmpty) {
-        print('✅ SplashScreen: User already logged in, going to Dashboard');
+        print(' SplashScreen: User already logged in, going to Dashboard');
         Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
       } else {
-        print('⏩ SplashScreen: No logged-in user, going to Onboarding');
+        print(' SplashScreen: No logged-in user, going to Onboarding');
         Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
       }
     } catch (e) {
-      print('❌ SplashScreen: Error checking session: $e');
+      print(' SplashScreen: Error checking session: $e');
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
     }

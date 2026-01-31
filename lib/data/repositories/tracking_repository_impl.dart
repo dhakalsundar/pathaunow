@@ -37,7 +37,6 @@ class TrackingRepository implements ITrackingRepository {
 
   @override
   Future<List<TrackingEntity>> getActiveTrackingForRider(String riderId) async {
-    // Implementation for getting active tracking for rider
     throw UnimplementedError();
   }
 

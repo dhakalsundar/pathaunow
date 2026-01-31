@@ -1,7 +1,5 @@
 import 'package:pathau_now/domain/entities/parcel_entity.dart';
 
-/// Data Models - Maps between API responses and domain entities
-
 class ParcelModel extends ParcelEntity {
   const ParcelModel({
     required super.id,
