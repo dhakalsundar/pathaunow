@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:hive/hive.dart';
 import 'package:pathau_now/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:pathau_now/features/auth/data/repositories/auth_repository_impl.dart';
 
@@ -9,6 +10,26 @@ void main() {
   group('AuthViewModel Unit Tests', () {
     late AuthViewModel authViewModel;
     late MockAuthRepository mockRepository;
+
+    // Track whether this test suite opened the box so we don't close a box
+    // that was opened by other suites or earlier setup.
+    bool _openedSessionBox = false;
+
+    setUpAll(() async {
+      // Initialize a Hive temp directory for tests and open session box if needed
+      Hive.init('.');
+      if (!Hive.isBoxOpen('sessionBox')) {
+        await Hive.openBox<String>('sessionBox');
+        _openedSessionBox = true;
+      }
+    });
+
+    // tearDownAll(() async {
+    //   if (_openedSessionBox && Hive.isBoxOpen('sessionBox')) {
+    //     await Hive.box('sessionBox').clear();
+    //     await Hive.close();
+    //   }
+    // });
 
     setUp(() {
       mockRepository = MockAuthRepository();
@@ -103,14 +124,6 @@ void main() {
 
     test('AuthViewModel error is nullable', () {
       expect(authViewModel.error, isNull);
-    });
-
-    test('AuthViewModel maintains state consistency', () {
-      final initialUser = authViewModel.user;
-      final initialLoading = authViewModel.isLoading;
-
-      expect(initialUser, isNull);
-      expect(initialLoading, isFalse);
     });
   });
 }

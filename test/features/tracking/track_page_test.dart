@@ -17,6 +17,11 @@ void main() {
     setUp(() {
       mockParcelViewModel = MockParcelViewModel();
       trackingController = TextEditingController();
+      // Provide default empty parcels to avoid null-related build errors
+      when(() => mockParcelViewModel.userParcels).thenReturn([]);
+      when(
+        () => mockParcelViewModel.getUserParcels(),
+      ).thenAnswer((_) async => {});
       demoDb = {
         "PN-1001": TrackingInfo(
           id: "PN-1001",
@@ -71,14 +76,20 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.search), findsOneWidget);
+      expect(find.byIcon(Icons.search_rounded), findsOneWidget);
       expect(find.byIcon(Icons.qr_code_2_rounded), findsOneWidget);
     });
 
     testWidgets('TrackPage displays selected tracking info', (
       WidgetTester tester,
     ) async {
+      // Use tablet viewport to ensure selected details panel is visible
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -147,20 +158,23 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ChangeNotifierProvider<ParcelViewModel>.value(
-            value: mockParcelViewModel,
-            child: TrackPage(
-              primaryColor: const Color(0xFFF57C00),
-              trackingController: trackingController,
-              selectedTracking: demoDb["PN-1001"],
-              demoTrackingDb: demoDb,
-              onTrack: () => onTrackCalled = true,
-              onTrackId: (_) {},
+          home: Scaffold(
+            body: ChangeNotifierProvider<ParcelViewModel>.value(
+              value: mockParcelViewModel,
+              child: TrackPage(
+                primaryColor: const Color(0xFFF57C00),
+                trackingController: trackingController,
+                selectedTracking: demoDb["PN-1001"],
+                demoTrackingDb: demoDb,
+                onTrack: () => onTrackCalled = true,
+                onTrackId: (_) {},
+              ),
             ),
           ),
         ),
       );
 
+      await tester.pumpAndSettle();
       final searchButtons = find.byIcon(Icons.search);
       if (searchButtons.evaluate().isNotEmpty) {
         await tester.tap(searchButtons.first);

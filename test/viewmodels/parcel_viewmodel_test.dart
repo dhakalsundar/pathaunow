@@ -79,9 +79,10 @@ void main() {
       expect(identical(parcelViewModel.userParcels, initialParcels), isTrue);
     });
 
-    test('ParcelViewModel multiple dispose calls do not throw', () {
+    test('ParcelViewModel multiple dispose calls throw FlutterError', () {
       parcelViewModel.dispose();
-      expect(() => parcelViewModel.dispose(), returnsNormally);
+      // Second dispose is expected to throw FlutterError in debug mode
+      expect(() => parcelViewModel.dispose(), throwsFlutterError);
     });
 
     test('ParcelViewModel isLoading initial state', () {

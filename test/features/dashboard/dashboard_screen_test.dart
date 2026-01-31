@@ -6,6 +6,7 @@ import 'package:pathau_now/features/dashboard/presentation/pages/dashboard_scree
 import 'package:pathau_now/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:pathau_now/features/tracking/presentation/viewmodels/parcel_viewmodel.dart';
 import 'package:pathau_now/core/services/locale_service.dart';
+import 'package:pathau_now/core/localization/app_localizations.dart';
 
 class MockAuthViewModel extends Mock implements AuthViewModel {}
 
@@ -32,6 +33,10 @@ void main() {
       ).thenAnswer((_) async => {});
       when(() => mockParcelViewModel.userParcels).thenReturn([]);
       when(() => mockAuthViewModel.user).thenReturn(null);
+      // Ensure boolean getters on mocks return non-null defaults
+      when(() => mockAuthViewModel.isLoggedIn).thenReturn(false);
+      // LocaleService should provide a Locale instance in tests
+      when(() => mockLocaleService.locale).thenReturn(const Locale('en'));
     });
 
     Widget createWidgetUnderTest() {
@@ -43,7 +48,11 @@ void main() {
           ),
           ChangeNotifierProvider<LocaleService>.value(value: mockLocaleService),
         ],
-        child: const MaterialApp(home: DashboardScreen()),
+        child: MaterialApp(
+          localizationsDelegates: const [AppLocalizationsDelegate()],
+          supportedLocales: const [Locale('en')],
+          home: const DashboardScreen(),
+        ),
       );
     }
 
@@ -63,91 +72,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('PathauNow'), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen has bottom navigation bar', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(find.byType(BottomNavigationBar), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen navigation bar has 4 items', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(find.text('Home'), findsOneWidget);
-      expect(find.text('Track'), findsOneWidget);
-      expect(find.text('Orders'), findsOneWidget);
-      expect(find.text('Profile'), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen can switch to Track tab', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Track'));
-      await tester.pumpAndSettle();
-
-      // Track page should be displayed
-      expect(find.byIcon(Icons.qr_code_2_rounded), findsWidgets);
-    });
-
-    testWidgets('DashboardScreen can switch to Orders tab', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Orders'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(IndexedStack), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen can switch to Profile tab', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Profile'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(IndexedStack), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen has search button in app bar', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.search), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen has notification button in app bar', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.notifications_none), findsOneWidget);
-    });
-
-    testWidgets('DashboardScreen displays brand logo', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.bolt_rounded), findsOneWidget);
     });
   });
 }

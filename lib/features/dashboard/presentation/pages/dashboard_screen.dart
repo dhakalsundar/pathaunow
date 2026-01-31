@@ -112,10 +112,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Ensure AuthViewModel loads current user when dashboard opens and prefetch user's parcels
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authVm = Provider.of<AuthViewModel>(context, listen: false);
-      print('📱 Dashboard: Fetching current user...');
+      print(' Dashboard: Fetching current user...');
       await authVm.getCurrentUser();
-      print('📱 Dashboard: User = ${authVm.user?.name ?? "null"}');
-      print('📱 Dashboard: User email = ${authVm.user?.email ?? "null"}');
+      print(' Dashboard: User = ${authVm.user?.name ?? "null"}');
+      print(' Dashboard: User email = ${authVm.user?.email ?? "null"}');
 
       // Prefetch user's parcels to show recent IDs and select first if available
       final pv = Provider.of<ParcelViewModel>(context, listen: false);
