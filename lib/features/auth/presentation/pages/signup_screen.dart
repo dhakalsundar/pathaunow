@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/my_button.dart';
 import '../../../../core/widgets/my_textfield.dart';
 import 'login_screen.dart';
-import '../../../dashboard/presentation/pages/dashboard_screen.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../domain/entities/user_entity.dart';
-import '../../domain/usecases/sign_up_usecase.dart';
+import 'package:provider/provider.dart';
+import 'package:pathau_now/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 
 class SignupScreen extends StatefulWidget {
   static const String routeName = '/signup';
@@ -18,12 +16,14 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,30 +31,60 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _signup() async {
     final String name = _nameController.text.trim();
     final String email = _emailController.text.trim();
+    final String phone = _phoneController.text.trim();
     final String password = _passwordController.text;
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
-    final repo = AuthRepositoryImpl();
-    final usecase = SignUpUseCase(repo);
-    final ok = await usecase.execute(
-      UserEntity(name: name, email: email, password: password),
-    );
-    if (!mounted) return;
-    if (ok) {
+    print(' SignupScreen: Starting signup process...');
+    print(' SignupScreen: Name: $name, Email: $email, Phone: $phone');
+
+    final authVm = Provider.of<AuthViewModel>(context, listen: false);
+
+    try {
+      print(' SignupScreen: Calling AuthViewModel.signup()...');
+      await authVm.signup(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      print(' SignupScreen: Signup completed. Error: ${authVm.error}');
+
+      if (authVm.error == null) {
+        print(' SignupScreen: Signup successful, redirecting to login...');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created — please login')),
+        );
+        Navigator.pushReplacementNamed(
+          context,
+          LoginScreen.routeName,
+          arguments: {
+            'prefillEmail': email,
+            'prefillPassword': password,
+            'message': 'Account created. Please login.',
+          },
+        );
+      } else {
+        print(' SignupScreen: Signup failed with error: ${authVm.error}');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${authVm.error!}')));
+      }
+    } catch (e) {
+      print(' SignupScreen: Exception caught: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Account created')));
-      Navigator.pushReplacementNamed(context, LoginScreen.routeName);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Account already exists')));
+      ).showSnackBar(SnackBar(content: Text('Network error: ${e.toString()}')));
     }
   }
 
@@ -135,13 +165,28 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: 16),
                     MyTextField(
+                      controller: _phoneController,
+                      hintText: 'Phone Number',
+                      keyboardType: TextInputType.phone,
+                      obscureText: false,
+                    ),
+                    const SizedBox(height: 16),
+                    MyTextField(
                       controller: _passwordController,
                       hintText: 'Password',
                       obscureText: true,
                       keyboardType: TextInputType.text,
                     ),
                     const SizedBox(height: 24),
-                    MyButton(text: 'Sign Up', onPressed: _signup),
+                    Consumer<AuthViewModel>(
+                      builder: (context, authVm, _) => MyButton(
+                        text: authVm.isLoading ? 'Signing Up...' : 'Sign Up',
+                        onPressed: () {
+                          if (authVm.isLoading) return;
+                          _signup();
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

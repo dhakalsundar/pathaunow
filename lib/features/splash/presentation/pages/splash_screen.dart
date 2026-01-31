@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../onboarding/presentation/pages/onboarding_screen.dart';
+import '../../../dashboard/presentation/pages/dashboard_screen.dart';
+import '../../../../../../core/services/hive/hive_service.dart';
+import '../../../../../../features/auth/presentation/viewmodels/auth_viewmodel.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String routeName = '/';
@@ -13,9 +17,36 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
+    _navigateToNextScreen();
+  }
+
+  Future<void> _navigateToNextScreen() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    try {
+      final authVm = Provider.of<AuthViewModel>(context, listen: false);
+      final storedToken = authVm.getStoredToken();
+
+      print(' SplashScreen: Checking for saved session...');
+      print(
+        ' SplashScreen: Stored token exists: ${storedToken != null && storedToken.isNotEmpty}',
+      );
+      print(' SplashScreen: User logged in: ${authVm.isLoggedIn}');
+
+      if (!mounted) return;
+
+      if (authVm.isLoggedIn && storedToken != null && storedToken.isNotEmpty) {
+        print(' SplashScreen: User already logged in, going to Dashboard');
+        Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
+      } else {
+        print(' SplashScreen: No logged-in user, going to Onboarding');
+        Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
+      }
+    } catch (e) {
+      print(' SplashScreen: Error checking session: $e');
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
-    });
+    }
   }
 
   @override

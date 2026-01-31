@@ -14,11 +14,7 @@ class AuthRemoteDatasource {
       body: {"email": email, "password": password},
     );
 
-    return AuthResponseModel.fromJson(
-      res,
-      password: password,
-      fallbackEmail: email,
-    );
+    return AuthResponseModel.fromJson(res, fallbackEmail: email);
   }
 
   Future<bool> signup(String name, String email, String password) async {

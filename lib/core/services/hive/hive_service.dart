@@ -25,4 +25,18 @@ class HiveService {
   static Box<User> usersBox() => Hive.box<User>(usersBoxName);
   static Box<String> sessionBox() => Hive.box<String>(sessionBoxName);
   static Box<Parcel> parcelsBox() => Hive.box<Parcel>(parcelsBoxName);
+
+  static Future<void> saveToken(String token) async {
+    final box = sessionBox();
+    await box.put('auth_token', token);
+  }
+
+  static String? getToken() {
+    try {
+      final box = sessionBox();
+      return box.get('auth_token');
+    } catch (e) {
+      return null;
+    }
+  }
 }

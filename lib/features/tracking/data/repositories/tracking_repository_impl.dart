@@ -8,11 +8,11 @@ class TrackingRepositoryImpl implements TrackingRepository {
   Future<void> createParcel(ParcelEntity parcel) async {
     final dm = data_model.Parcel(
       trackingId: parcel.trackingId,
-      sender: parcel.sender,
-      recipient: parcel.recipient,
+      sender: parcel.sender.name,
+      recipient: parcel.receiver.name,
       status: parcel.status,
-      courierName: parcel.courierName,
-      ownerEmail: parcel.ownerEmail,
+      courierName: 'Unassigned',
+      ownerEmail: parcel.sender.email,
     );
 
     final box = HiveService.parcelsBox();
@@ -25,12 +25,30 @@ class TrackingRepositoryImpl implements TrackingRepository {
     final data_model.Parcel? p = box.get(trackingId);
     if (p == null) return null;
     return ParcelEntity(
+      id: trackingId,
       trackingId: p.trackingId,
-      sender: p.sender,
-      recipient: p.recipient,
+      sender: SenderEntity(
+        name: p.sender,
+        email: p.ownerEmail,
+        phone: '',
+        address: '',
+        city: '',
+      ),
+      receiver: ReceiverEntity(
+        name: p.recipient,
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+      ),
       status: p.status,
-      courierName: p.courierName,
-      ownerEmail: p.ownerEmail,
+      weight: 0.0,
+      price: 0.0,
+      paymentStatus: 'pending',
+      contents: '',
+      timeline: [],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 
@@ -41,12 +59,30 @@ class TrackingRepositoryImpl implements TrackingRepository {
         .where((p) => p.ownerEmail == ownerEmail)
         .map(
           (p) => ParcelEntity(
+            id: p.trackingId,
             trackingId: p.trackingId,
-            sender: p.sender,
-            recipient: p.recipient,
+            sender: SenderEntity(
+              name: p.sender,
+              email: p.ownerEmail,
+              phone: '',
+              address: '',
+              city: '',
+            ),
+            receiver: ReceiverEntity(
+              name: p.recipient,
+              email: '',
+              phone: '',
+              address: '',
+              city: '',
+            ),
             status: p.status,
-            courierName: p.courierName,
-            ownerEmail: p.ownerEmail,
+            weight: 0.0,
+            price: 0.0,
+            paymentStatus: 'pending',
+            contents: '',
+            timeline: [],
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
         )
         .toList();
