@@ -8,7 +8,6 @@ class AuthResponseModel {
 
   factory AuthResponseModel.fromJson(
     Map<String, dynamic> json, {
-    required String password,
     required String fallbackEmail,
   }) {
     final token = json["token"]?.toString();
@@ -23,8 +22,8 @@ class AuthResponseModel {
     }
 
     final user = userJson != null
-        ? UserModel.fromJson(userJson, password: password)
-        : UserModel(name: "", email: fallbackEmail, password: password);
+        ? UserModel.fromJson(userJson)
+        : UserModel(id: '', name: "", email: fallbackEmail, phone: '');
 
     return AuthResponseModel(token: token, user: user);
   }

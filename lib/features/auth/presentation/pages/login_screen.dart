@@ -3,9 +3,8 @@ import '../../../../core/widgets/my_button.dart';
 import '../../../../core/widgets/my_textfield.dart';
 import 'signup_screen.dart';
 import '../../../dashboard/presentation/pages/dashboard_screen.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/set_current_user_usecase.dart';
+import 'package:provider/provider.dart';
+import 'package:pathau_now/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = '/login';
@@ -19,11 +18,41 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _initialized = false;
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        if (args['prefillEmail'] != null) {
+          _emailController.text = args['prefillEmail'].toString();
+        }
+        if (args['prefillPassword'] != null) {
+          // Prefill password only when passed explicitly from signup flow
+          _passwordController.text = args['prefillPassword'].toString();
+        }
+        if (args['message'] != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(args['message'].toString())),
+              );
+            }
+          });
+        }
+      }
+      _initialized = true;
+    }
   }
 
   Future<void> _login() async {
@@ -37,23 +66,45 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final repo = AuthRepositoryImpl();
-    final usecase = LoginUseCase(repo);
-    final setCurrent = SetCurrentUserUseCase(repo);
-    final user = await usecase.execute(email, password);
-    if (user != null) {
-      await setCurrent.execute(user);
+    print('📱 LoginScreen: Starting login process...');
+    print('📱 LoginScreen: Email: $email');
+
+    final authVm = Provider.of<AuthViewModel>(context, listen: false);
+
+    try {
+      await authVm.login(email: email, password: password);
+      if (!mounted) return;
+
+      if (authVm.error == null) {
+        print('✅ LoginScreen: Login successful');
+        print(
+          '📱 LoginScreen: User data - Name: ${authVm.user?.name}, Email: ${authVm.user?.email}',
+        );
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Login successful')));
+
+        print('📱 LoginScreen: Navigating to dashboard...');
+        // Navigate to dashboard with home tab (index 0)
+        Navigator.pushReplacementNamed(
+          context,
+          DashboardScreen.routeName,
+          arguments: {'initialIndex': 0}, // Home tab
+        );
+      } else {
+        print('❌ LoginScreen: Login failed - ${authVm.error}');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(authVm.error!)));
+      }
+    } catch (e) {
+      print('❌ LoginScreen: Exception during login: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Login successful')));
-      Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
-      return;
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Invalid credentials')));
   }
 
   @override

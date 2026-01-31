@@ -1,0 +1,105 @@
+import 'package:flutter/material.dart';
+
+typedef AddressSubmitCallback = void Function(Map<String, String> address);
+
+class AddressForm extends StatefulWidget {
+  final AddressSubmitCallback? onSubmit;
+  final bool showPostalCode;
+
+  const AddressForm({Key? key, this.onSubmit, this.showPostalCode = true})
+    : super(key: key);
+
+  @override
+  State<AddressForm> createState() => _AddressFormState();
+}
+
+class _AddressFormState extends State<AddressForm> {
+  final _formKey = GlobalKey<FormState>();
+  final _streetController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _postalController = TextEditingController();
+
+  @override
+  void dispose() {
+    _streetController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _postalController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final address = {
+      'street': _streetController.text.trim(),
+      'city': _cityController.text.trim(),
+      'state': _stateController.text.trim(),
+      if (widget.showPostalCode) 'postalCode': _postalController.text.trim(),
+    };
+
+    if (widget.onSubmit != null) widget.onSubmit!(address);
+  }
+
+  String? _requiredValidator(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Required';
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: _streetController,
+            decoration: const InputDecoration(labelText: 'Street address'),
+            validator: _requiredValidator,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _cityController,
+                  decoration: const InputDecoration(labelText: 'City'),
+                  validator: _requiredValidator,
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  controller: _stateController,
+                  decoration: const InputDecoration(
+                    labelText: 'State / Region',
+                  ),
+                  validator: _requiredValidator,
+                  textInputAction: widget.showPostalCode
+                      ? TextInputAction.next
+                      : TextInputAction.done,
+                ),
+              ),
+            ],
+          ),
+          if (widget.showPostalCode) ...[
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _postalController,
+              decoration: const InputDecoration(labelText: 'Postal code'),
+              validator: _requiredValidator,
+              keyboardType: TextInputType.streetAddress,
+              textInputAction: TextInputAction.done,
+            ),
+          ],
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: _submit, child: const Text('Save address')),
+        ],
+      ),
+    );
+  }
+}
