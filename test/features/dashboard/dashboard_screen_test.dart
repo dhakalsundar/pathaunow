@@ -33,9 +33,7 @@ void main() {
       ).thenAnswer((_) async => {});
       when(() => mockParcelViewModel.userParcels).thenReturn([]);
       when(() => mockAuthViewModel.user).thenReturn(null);
-      // Ensure boolean getters on mocks return non-null defaults
       when(() => mockAuthViewModel.isLoggedIn).thenReturn(false);
-      // LocaleService should provide a Locale instance in tests
       when(() => mockLocaleService.locale).thenReturn(const Locale('en'));
     });
 
