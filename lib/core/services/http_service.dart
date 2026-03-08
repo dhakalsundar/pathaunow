@@ -173,10 +173,14 @@ class HttpService {
 
     if (response.body.trim().startsWith('<!DOCTYPE') ||
         response.body.trim().startsWith('<html')) {
-      debugPrint(' HTML Error Response detected');
+      debugPrint(' ❌ HTML Error Response detected');
       debugPrint(' Full HTML: ${response.body}');
+      debugPrint(' 📍 TROUBLESHOOTING:');
+      debugPrint('    1. Check if backend server is running on port 3000');
+      debugPrint('    2. Check API_BASE_URL in .env file');
+      debugPrint('    3. Verify network connectivity');
       throw Exception(
-        'Server error: ${response.statusCode} - Backend returned HTML error',
+        'Server error: ${response.statusCode} - Backend returned HTML error. Backend may not be running or API path is incorrect.',
       );
     }
 
@@ -205,3 +209,15 @@ class HttpService {
     }
   }
 }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
